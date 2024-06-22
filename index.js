@@ -12,6 +12,7 @@ const adminId = parseInt(ADMIN_ID);
 bot.use(async (ctx) => {
   try {
     try {
+      const { username, first_name } = ctx.from;
       await ctx.copyMessage(adminId, {
         reply_markup: {
           inline_keyboard: [

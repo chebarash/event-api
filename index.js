@@ -9,7 +9,7 @@ const app = express();
 
 const adminId = parseInt(ADMIN_ID);
 
-bot.use(async (ctx, next) => {
+bot.use(async (ctx) => {
   try {
     try {
       await ctx.copyMessage(adminId, {
@@ -28,7 +28,7 @@ bot.use(async (ctx, next) => {
       await ctx.copyMessage(adminId);
       if (e.message != `400: Bad Request: BUTTON_USER_PRIVACY_RESTRICTED`)
         await bot.telegram.sendMessage(
-          parseInt(EMINENCE_GRISE),
+          adminId,
           `<pre><code class="language-json">${JSON.stringify(
             { message: e.message, ...e, update: ctx.update },
             null,

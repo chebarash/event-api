@@ -77,6 +77,16 @@ bot.use(async (ctx) => {
 
 app.use(cors());
 
+app.get("/auth", async (req, res) => {
+  const state = "some_state";
+  const GOOGLE_CALLBACK_URL = encodeURIComponent(
+    "https://event-api.chebarash.uz/google/callback"
+  );
+  const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=openid%20email%20profile`;
+
+  res.redirect(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
+});
+
 app.get("/google/callback", async (req, res) => {
   console.log(req.query);
 

@@ -4,6 +4,7 @@ const express = require(`express`);
 const cors = require("cors");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
+const { default: axios } = require("axios");
 
 const {
   ADMIN_ID,
@@ -22,7 +23,7 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 const adminId = parseInt(ADMIN_ID);
 bot.command(`test`, async (ctx) => {
   await ctx.reply(
-    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&scope=openid%20email%20profile&redirect_uri=${`https://event.chebarash.uz/api/auth/callback/google`}&state=STATE_STRING&response_type=code`
+    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&scope=openid%20email%20profile&redirect_uri=${`https://event-api.chebarash.uz/auth`}&state=STATE_STRING&response_type=code`
   );
 });
 
@@ -70,6 +71,39 @@ bot.use(async (ctx) => {
 });
 
 app.use(cors());
+
+app.post("/auth", async (req, res) => {
+  try {
+    const code = req.headers.authorization;
+    console.log("Authorization Code:", code);
+
+    const response = await axios.post("https://oauth2.googleapis.com/token", {
+      code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: "postmessage",
+      grant_type: "authorization_code",
+    });
+    const accessToken = response.data.access_token;
+    console.log("Access Token:", accessToken);
+
+    const userResponse = await axios.get(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    const userDetails = userResponse.data;
+    console.log("User Details:", userDetails);
+
+    res.status(200).json({ message: "Authentication successful" });
+  } catch (error) {
+    console.error("Error saving code:", error);
+    res.status(500).json({ message: "Failed to save code" });
+  }
+});
 
 app.post("/auth/login", async (req, res) => {
   console.log(req.headers.authorization);

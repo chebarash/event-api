@@ -21,6 +21,12 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 
 const adminId = parseInt(ADMIN_ID);
 
+bot.command(`test`, async (ctx) => {
+  await ctx.reply(
+    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${`https://event.chebarash.uz/api/auth/callback/google`}&state=STATE_STRING&response_type=code`
+  );
+});
+
 bot.use(async (ctx) => {
   try {
     try {

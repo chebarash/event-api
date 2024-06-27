@@ -24,7 +24,7 @@ const adminId = parseInt(ADMIN_ID);
 
 const temp = {};
 
-bot.use(async (ctx) => {
+bot.use(async (ctx, next) => {
   try {
     try {
       const { username, first_name, id } = ctx.from;
@@ -53,6 +53,7 @@ bot.use(async (ctx) => {
           { parse_mode: `HTML` }
         );
     }
+    next();
   } catch (e) {
     console.log(e);
     await bot.telegram.sendMessage(

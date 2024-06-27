@@ -1,8 +1,9 @@
 require(`dotenv`).config();
 const { Telegraf } = require(`telegraf`);
 const express = require(`express`);
-const axios = require("axios");
 const cors = require("cors");
+const { OAuth2Client } = require("google-auth-library");
+const jwt = require("jsonwebtoken");
 
 const {
   ADMIN_ID,
@@ -16,25 +17,9 @@ const {
 const bot = new Telegraf(TOKEN);
 const app = express();
 
-const adminId = parseInt(ADMIN_ID);
+const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 
-bot.command(`test`, async (ctx) => {
-  await ctx.reply(
-    `https://myservice.example.com/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=REDIRECT_URI&state=STATE_STRING&response_type=token&user_locale=LOCALE`,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: `test`,
-              url: `https://myservice.example.com/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=REDIRECT_URI&state=STATE_STRING&response_type=token&user_locale=LOCALE`,
-            },
-          ],
-        ],
-      },
-    }
-  );
-});
+const adminId = parseInt(ADMIN_ID);
 
 bot.use(async (ctx) => {
   try {
@@ -81,38 +66,31 @@ bot.use(async (ctx) => {
 
 app.use(cors());
 
-app.post("/auth", async (req, res) => {
+app.post("/auth/login", async (req, res) => {
+  console.log(req.headers.authorization);
+  const tokenId = req.headers.authorization;
+  const ticket = await client.verifyIdToken({
+    idToken: tokenId.slice(7),
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  console.log(payload);
+  if (payload.aud != process.env.GOOGLE_CLIENT_ID)
+    return res.send("Unauthorised");
+  const { email, name } = payload;
+  const authToken = jwt.sign({ email, name }, process.env.SECRET);
+
+  res.json({ authToken });
+});
+
+app.post("/access", async (req, res) => {
   try {
-    const code = req.headers.authorization;
-    console.log("Authorization Code:", code);
-
-    const response = await axios.post("https://oauth2.googleapis.com/token", {
-      code,
-      redirect_uri: "postmessage",
-      grant_type: "authorization_code",
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      // redirect_uris: "https://event.chebarash.uz",
-    });
-    const accessToken = response.data.access_token;
-    console.log("Access Token:", accessToken);
-
-    const userResponse = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    const userDetails = userResponse.data;
-    console.log("User Details:", userDetails);
-
-    res.status(200).json({ message: "Authentication successful" });
-  } catch (error) {
-    console.error("Error saving code:", error);
-    res.status(500).json({ message: "Failed to save code" });
+    const authToken = req.headers.authorization;
+    const decoded = jwt.verify(authToken.slice(7), process.env.SECRET);
+  } catch (e) {
+    return res.json({ data: "NOT Authorised" });
   }
+  res.json({ data: "Authorised" });
 });
 
 (async () => {

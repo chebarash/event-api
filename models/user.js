@@ -1,11 +1,5 @@
-const { Schema, model } = require("mongoose");
+const database = require("../db");
 
-const User = new Schema({
-  given_name: { type: String, required: true },
-  family_name: { type: String, required: true },
-  picture: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  id: { type: Number, required: true, unique: true },
-});
+const users = database.collection("users");
 
-module.exports = model("user", User);
+module.exports = users;

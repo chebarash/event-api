@@ -23,7 +23,9 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 const adminId = parseInt(ADMIN_ID);
 bot.command(`test`, async (ctx) => {
   await ctx.reply(
-    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&scope=openid%20email%20profile&redirect_uri=${`http://event-api.chebarash.uz/auth`}&state=STATE_STRING&response_type=code`
+    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&scope=openid%20email%20profile&redirect_uri=${encodeURIComponent(
+      `https://event-api.chebarash.uz/auth`
+    )}&state=STATE_STRING&response_type=code`
   );
 });
 

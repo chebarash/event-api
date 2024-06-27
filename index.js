@@ -24,7 +24,7 @@ const adminId = parseInt(ADMIN_ID);
 const temp = {};
 
 const client = new MongoClient(MONGODB);
-const database = client.db(api);
+const database = client.db("api");
 const users = database.collection("users");
 
 bot.use(async (ctx, next) => {

@@ -2,8 +2,7 @@ require(`dotenv`).config();
 const { Telegraf } = require(`telegraf`);
 const express = require(`express`);
 const cors = require("cors");
-const mongoose = require("mongoose");
-const UserModel = require("./models/user");
+const { MongoClient } = require("mongodb");
 
 const {
   ADMIN_ID,
@@ -23,6 +22,10 @@ const app = express();
 const adminId = parseInt(ADMIN_ID);
 
 const temp = {};
+
+const client = new MongoClient(MONGODB);
+const database = client.db(api);
+const users = database.collection("users");
 
 bot.use(async (ctx, next) => {
   try {
@@ -72,7 +75,7 @@ bot.start(async (ctx) => {
   const tempId = ctx.message.text.split(` `)[1];
   if (tempId) {
     temp[tempId].id = ctx.chat.id;
-    await new UserModel(temp[tempId]).save();
+    await users.insertOne(temp[tempId]);
     return ctx.reply(`welcome`, {
       reply_markup: {
         inline_keyboard: [
@@ -133,7 +136,6 @@ app.get("/google/callback", async (req, res) => {
 (async () => {
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));
   app.listen(PORT, () => console.log(`Listening on port`, PORT));
-  await mongoose.connect(MONGODB);
 })();
 
 module.exports = app;

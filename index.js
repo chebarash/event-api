@@ -130,9 +130,9 @@ app.get("/google/callback", async (req, res) => {
 });
 
 (async () => {
-  await mongoose.connect(MONGODB);
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));
   app.listen(PORT, () => console.log(`Listening on port`, PORT));
+  await mongoose.connect(MONGODB);
 })();
 
 module.exports = app;

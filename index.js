@@ -21,12 +21,15 @@ const app = express();
 const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 
 const adminId = parseInt(ADMIN_ID);
+
 bot.command(`test`, async (ctx) => {
-  await ctx.reply(
-    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&scope=openid%20email%20profile&redirect_uri=${encodeURIComponent(
-      `https://event-api.chebarash.uz/auth`
-    )}&state=STATE_STRING&response_type=code`
+  const state = "some_state";
+  const GOOGLE_CALLBACK_URL = encodeURIComponent(
+    "https://event-api.chebarash.uz/google/callback"
   );
+  const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=openid%20email%20profile`;
+
+  await ctx.reply(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
 });
 
 bot.use(async (ctx) => {
@@ -74,7 +77,39 @@ bot.use(async (ctx) => {
 
 app.use(cors());
 
-app.post("/auth", async (req, res) => {
+app.get("/google/callback", async (req, res) => {
+  console.log(req.query);
+
+  const { code } = req.query;
+
+  const data = {
+    code,
+    client_id: GOOGLE_CLIENT_ID,
+    client_secret: GOOGLE_CLIENT_SECRET,
+    redirect_uri: "https://event-api.chebarash.uz/google/callback",
+    grant_type: "authorization_code",
+  };
+
+  console.log(data);
+
+  const response = await fetch(GOOGLE_ACCESS_TOKEN_URL, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  const access_token_data = await response.json();
+
+  const { id_token } = access_token_data;
+
+  console.log(id_token);
+
+  const token_info_response = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`
+  );
+  res.status(token_info_response.status).json(await token_info_response.json());
+});
+
+app.post("/api/auth/callback/google", async (req, res) => {
   try {
     const code = req.headers.authorization;
     console.log("Authorization Code:", code);

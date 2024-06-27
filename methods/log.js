@@ -2,7 +2,7 @@ const { ADMIN_ID } = process.env;
 
 const adminId = parseInt(ADMIN_ID);
 
-const log = async (ctx, next) => {
+const log = async (ctx) => {
   const { id, first_name, username } = ctx.from;
 
   try {
@@ -31,8 +31,6 @@ const log = async (ctx, next) => {
         { parse_mode: `HTML` }
       );
   }
-
-  await next();
 };
 
 module.exports = log;

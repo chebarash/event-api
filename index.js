@@ -17,6 +17,19 @@ const { TOKEN, VERCEL_URL, PORT } = process.env;
 const bot = new Telegraf(TOKEN, { contextType: MyContext });
 const app = express();
 
+bot.start(async (ctx) => {
+  try {
+    const { id } = ctx.from;
+    const tempId = ctx.message.text.split(` `)[1];
+    if (tempId) await newuser(id, tempId);
+    ctx.user = await users.findOne({ id });
+    if (!ctx.user) return await login(ctx);
+    return await start(ctx);
+  } catch (e) {
+    await error(ctx, e);
+  }
+});
+
 bot.use(async (ctx, next) => {
   try {
     const { id } = ctx.from;
@@ -25,15 +38,10 @@ bot.use(async (ctx, next) => {
     if (!ctx.user) return await login(ctx);
 
     await next();
+    await log(ctx);
   } catch (e) {
     await error(ctx, e);
   }
-}, log);
-
-bot.start(async (ctx) => {
-  const tempId = ctx.message.text.split(` `)[1];
-  if (tempId) await newuser(ctx, tempId);
-  return await start(ctx);
 });
 
 app.use(cors());

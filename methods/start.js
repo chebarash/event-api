@@ -1,4 +1,4 @@
-const start = async (ctx) =>
+const start = (ctx) =>
   ctx.reply(`welcome`, {
     reply_markup: {
       inline_keyboard: [

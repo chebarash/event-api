@@ -2,9 +2,8 @@ require(`dotenv`).config();
 const { Telegraf } = require(`telegraf`);
 const express = require(`express`);
 const cors = require("cors");
-const { OAuth2Client } = require("google-auth-library");
-const jwt = require("jsonwebtoken");
-const { default: axios } = require("axios");
+const mongoose = require("mongoose");
+const UserModel = require("./models/user");
 
 const {
   ADMIN_ID,
@@ -13,24 +12,17 @@ const {
   PORT,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_CLIENT_ID,
+  GOOGLE_CALLBACK_URL,
+  GOOGLE_AUTH_URL,
+  MONGODB,
 } = process.env;
 
 const bot = new Telegraf(TOKEN);
 const app = express();
 
-const client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
-
 const adminId = parseInt(ADMIN_ID);
 
-bot.command(`test`, async (ctx) => {
-  const state = "some_state";
-  const GOOGLE_CALLBACK_URL = encodeURIComponent(
-    "https://event-api.chebarash.uz/google/callback"
-  );
-  const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=openid%20email%20profile`;
-
-  await ctx.reply(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
-});
+const temp = {};
 
 bot.use(async (ctx) => {
   try {
@@ -75,111 +67,70 @@ bot.use(async (ctx) => {
   }
 });
 
-app.use(cors());
+bot.start(async (ctx) => {
+  const tempId = ctx.message.text.split(` `)[1];
+  if (tempId) {
+    temp[tempId].id = ctx.chat.id;
+    await new UserModel(temp[tempId]).save();
+    return ctx.reply(`welcome`, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: `event`, web_app: { url: `https://event.chebarash.uz` } }],
+        ],
+      },
+    });
+  }
 
-app.get("/auth", async (req, res) => {
-  const state = "some_state";
-  const GOOGLE_CALLBACK_URL = encodeURIComponent(
-    "https://event-api.chebarash.uz/google/callback"
-  );
-  const GOOGLE_OAUTH_CONSENT_SCREEN_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_CALLBACK_URL}&access_type=offline&response_type=code&state=${state}&scope=openid%20email%20profile`;
-
-  res.redirect(GOOGLE_OAUTH_CONSENT_SCREEN_URL);
+  await ctx.reply(`Log In`, {
+    reply_markup: {
+      inline_keyboard: [[{ text: `log in`, url: GOOGLE_AUTH_URL }]],
+    },
+  });
 });
 
+app.use(cors());
+
+app.get("/auth", async (req, res) =>
+  res.redirect(
+    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+      GOOGLE_CALLBACK_URL
+    )}&access_type=offline&response_type=code&state=api&scope=openid%20email%20profile`
+  )
+);
+
 app.get("/google/callback", async (req, res) => {
-  console.log(req.query);
-
   const { code } = req.query;
-
-  const data = {
-    code,
-    client_id: GOOGLE_CLIENT_ID,
-    client_secret: GOOGLE_CLIENT_SECRET,
-    redirect_uri: "https://event-api.chebarash.uz/google/callback",
-    grant_type: "authorization_code",
-  };
-
-  console.log(data);
 
   const response = await fetch(`https://oauth2.googleapis.com/token`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: GOOGLE_CALLBACK_URL,
+      grant_type: "authorization_code",
+    }),
   });
 
-  const access_token_data = await response.json();
-
-  const { id_token } = access_token_data;
-
-  console.log(id_token);
+  const { id_token } = await response.json();
 
   const token_info_response = await fetch(
     `https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`
   );
-  res.status(token_info_response.status).json(await token_info_response.json());
-});
 
-app.post("/api/auth/callback/google", async (req, res) => {
-  try {
-    const code = req.headers.authorization;
-    console.log("Authorization Code:", code);
-
-    const response = await axios.post("https://oauth2.googleapis.com/token", {
-      code,
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      redirect_uri: "postmessage",
-      grant_type: "authorization_code",
-    });
-    const accessToken = response.data.access_token;
-    console.log("Access Token:", accessToken);
-
-    const userResponse = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    const userDetails = userResponse.data;
-    console.log("User Details:", userDetails);
-
-    res.status(200).json({ message: "Authentication successful" });
-  } catch (error) {
-    console.error("Error saving code:", error);
-    res.status(500).json({ message: "Failed to save code" });
+  if (token_info_response.status == 200) {
+    const tempId = (Math.random() + 1).toString(36).substring(7);
+    const { given_name, family_name, picture, email } =
+      await token_info_response.json();
+    temp[tempId] = { given_name, family_name, picture, email };
+    return res.redirect(`https://t.me/pueventbot?start=${tempId}`);
   }
-});
 
-app.post("/auth/login", async (req, res) => {
-  console.log(req.headers.authorization);
-  const tokenId = req.headers.authorization;
-  const ticket = await client.verifyIdToken({
-    idToken: tokenId.slice(7),
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-  const payload = ticket.getPayload();
-  console.log(payload);
-  if (payload.aud != process.env.GOOGLE_CLIENT_ID)
-    return res.send("Unauthorised");
-  const { email, name } = payload;
-  const authToken = jwt.sign({ email, name }, process.env.SECRET);
-
-  res.json({ authToken });
-});
-
-app.post("/access", async (req, res) => {
-  try {
-    const authToken = req.headers.authorization;
-    const decoded = jwt.verify(authToken.slice(7), process.env.SECRET);
-  } catch (e) {
-    return res.json({ data: "NOT Authorised" });
-  }
-  res.json({ data: "Authorised" });
+  res.status(token_info_response.status).json({ error: true });
 });
 
 (async () => {
+  await mongoose.connect(MONGODB);
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));
   app.listen(PORT, () => console.log(`Listening on port`, PORT));
 })();

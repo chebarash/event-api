@@ -102,7 +102,7 @@ app.get("/google/callback", async (req, res) => {
 
   console.log(data);
 
-  const response = await fetch(GOOGLE_ACCESS_TOKEN_URL, {
+  const response = await fetch(`https://oauth2.googleapis.com/token`, {
     method: "POST",
     body: JSON.stringify(data),
   });

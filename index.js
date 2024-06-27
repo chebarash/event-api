@@ -56,7 +56,7 @@ bot.use(async (ctx, next) => {
           { parse_mode: `HTML` }
         );
     }
-    next();
+    await next();
   } catch (e) {
     console.log(e);
     await bot.telegram.sendMessage(

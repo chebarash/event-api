@@ -3,7 +3,7 @@ const temp = require(`../temp`);
 const { GOOGLE_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL } =
   process.env;
 
-const callback = async (req, res) => {
+const callbackRoute = async (req, res) => {
   const { code } = req.query;
 
   const response = await fetch(`https://oauth2.googleapis.com/token`, {
@@ -34,4 +34,4 @@ const callback = async (req, res) => {
   res.status(token_info_response.status).json({ error: true });
 };
 
-module.exports = callback;
+module.exports = callbackRoute;

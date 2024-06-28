@@ -9,13 +9,14 @@ const login = require(`./methods/login`);
 const newuser = require(`./methods/newuser`);
 const log = require(`./methods/log`);
 
-const auth = require(`./routes/auth`);
-const callback = require(`./routes/callback`);
-const event = require("./routes/event");
+const authRoute = require(`./routes/auth`);
+const callbackRoute = require(`./routes/callback`);
+const eventRoute = require("./routes/event");
 
 const MyContext = require(`./context`);
 
 const users = require(`./models/user`);
+const userRoute = require("./routes/user");
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 
@@ -51,9 +52,10 @@ bot.use(async (ctx, next) => {
 });
 
 app.use(cors());
-app.get(`/auth`, auth);
-app.get(`/google/callback`, callback);
-app.get(`/event`, event);
+app.get(`/auth`, authRoute);
+app.get(`/google/callback`, callbackRoute);
+app.get(`/event`, eventRoute);
+app.get(`/user`, userRoute);
 
 (async () => {
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));

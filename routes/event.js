@@ -1,6 +1,6 @@
 const events = require(`../models/event`);
 
-const event = async (req, res) =>
+const eventRoute = async (req, res) =>
   res.send(
     await events
       .aggregate([
@@ -27,4 +27,4 @@ const event = async (req, res) =>
       .toArray()
   );
 
-module.exports = event;
+module.exports = eventRoute;

@@ -17,6 +17,7 @@ const userRoute = require(`./routes/user`);
 const MyContext = require(`./context`);
 
 const users = require(`./models/user`);
+const pictureRoute = require("./routes/picture");
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 
@@ -56,6 +57,7 @@ app.get(`/auth`, authRoute);
 app.get(`/google/callback`, callbackRoute);
 app.get(`/event`, eventRoute);
 app.get(`/user`, userRoute);
+app.get(`/picture`, pictureRoute);
 
 (async () => {
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));

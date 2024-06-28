@@ -1,7 +1,7 @@
 const events = require(`../models/event`);
 
 const eventRoute = async (req, res) =>
-  res.send(
+  res.json(
     await events
       .aggregate([
         {

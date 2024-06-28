@@ -11,12 +11,12 @@ const log = require(`./methods/log`);
 
 const authRoute = require(`./routes/auth`);
 const callbackRoute = require(`./routes/callback`);
-const eventRoute = require("./routes/event");
+const eventRoute = require(`./routes/event`);
+const userRoute = require(`./routes/user`);
 
 const MyContext = require(`./context`);
 
 const users = require(`./models/user`);
-const userRoute = require("./routes/user");
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 

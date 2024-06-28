@@ -51,11 +51,17 @@ bot.use(async (ctx, next) => {
   }
 });
 
+const handle = (next) => async (req, res) => {
+  try {
+    await next(req, res);
+  } catch (e) {}
+};
+
 app.use(cors());
-app.get(`/auth`, authRoute);
-app.get(`/google/callback`, callbackRoute);
-app.get(`/event`, eventRoute);
-app.get(`/user`, userRoute);
+app.get(`/auth`, handle(authRoute));
+app.get(`/google/callback`, handle(callbackRoute));
+app.get(`/event`, handle(eventRoute));
+app.get(`/user`, handle(userRoute));
 
 (async () => {
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));

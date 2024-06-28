@@ -1,4 +1,4 @@
-const temp = require("../temp");
+const temp = require(`../temp`);
 
 const { GOOGLE_CLIENT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL } =
   process.env;
@@ -7,13 +7,13 @@ const callback = async (req, res) => {
   const { code } = req.query;
 
   const response = await fetch(`https://oauth2.googleapis.com/token`, {
-    method: "POST",
+    method: `POST`,
     body: JSON.stringify({
       code,
       client_id: GOOGLE_CLIENT_ID,
       client_secret: GOOGLE_CLIENT_SECRET,
       redirect_uri: GOOGLE_CALLBACK_URL,
-      grant_type: "authorization_code",
+      grant_type: `authorization_code`,
     }),
   });
 

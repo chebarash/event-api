@@ -1,5 +1,5 @@
-const users = require("../models/user");
-const temp = require("../temp");
+const users = require(`../models/user`);
+const temp = require(`../temp`);
 
 const newuser = async (id, tempId) => {
   temp[tempId].id = id;

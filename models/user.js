@@ -1,5 +1,5 @@
-const database = require("../db");
+const database = require(`../db`);
 
-const users = database.collection("users");
+const users = database.collection(`users`);
 
 module.exports = users;

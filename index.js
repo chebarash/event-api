@@ -1,16 +1,21 @@
 require(`dotenv`).config();
 const { Telegraf } = require(`telegraf`);
 const express = require(`express`);
-const cors = require("cors");
-const start = require("./methods/start");
-const error = require("./methods/error");
-const auth = require("./routes/auth");
-const callback = require("./routes/callback");
-const users = require("./models/user");
-const login = require("./methods/login");
-const MyContext = require("./context");
-const newuser = require("./methods/newuser");
-const log = require("./methods/log");
+const cors = require(`cors`);
+
+const start = require(`./methods/start`);
+const error = require(`./methods/error`);
+const login = require(`./methods/login`);
+const newuser = require(`./methods/newuser`);
+const log = require(`./methods/log`);
+
+const auth = require(`./routes/auth`);
+const callback = require(`./routes/callback`);
+const event = require("./routes/event");
+
+const MyContext = require(`./context`);
+
+const users = require(`./models/user`);
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 
@@ -19,6 +24,7 @@ const app = express();
 
 bot.start(async (ctx) => {
   try {
+    await log(ctx);
     const { id } = ctx.from;
     const tempId = ctx.message.text.split(` `)[1];
     if (tempId) await newuser(id, tempId);
@@ -45,8 +51,9 @@ bot.use(async (ctx, next) => {
 });
 
 app.use(cors());
-app.get("/auth", auth);
-app.get("/google/callback", callback);
+app.get(`/auth`, auth);
+app.get(`/google/callback`, callback);
+app.get(`/event`, event);
 
 (async () => {
   app.use(await bot.createWebhook({ domain: VERCEL_URL }));

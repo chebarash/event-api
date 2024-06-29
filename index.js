@@ -89,7 +89,7 @@ bot.on("inline_query", async (ctx) => {
             [
               {
                 text: `event`,
-                callback_data: "moreinfo",
+                url: `https://t.me/pueventbot/event?startapp=${_id}`,
               },
             ],
           ],

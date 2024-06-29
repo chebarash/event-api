@@ -17,7 +17,7 @@ const userRoute = require(`./routes/user`);
 const MyContext = require(`./context`);
 
 const users = require(`./models/user`);
-const events = require("./models/event");
+const events = require(`./models/event`);
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 
@@ -38,10 +38,18 @@ bot.start(async (ctx) => {
   }
 });
 
-bot.on("inline_query", async (ctx) => {
+bot.on(`inline_query`, async (ctx) => {
   const offset = parseInt(ctx.inlineQuery.offset) || 0;
   const data = await events
     .aggregate([
+      {
+        $match: {
+          date: {
+            $gte: new Date(),
+            $lt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10),
+          },
+        },
+      },
       {
         $lookup: {
           from: `users`,
@@ -82,8 +90,8 @@ bot.on("inline_query", async (ctx) => {
         photo_url: picture,
         thumbnail_url: picture,
         description: title,
-        caption: "*" + title + "*\n" + description,
-        parse_mode: "Markdown",
+        caption: `*` + title + `*\n` + description,
+        parse_mode: `Markdown`,
         reply_markup: {
           inline_keyboard: [
             [
@@ -121,7 +129,10 @@ bot.use(async (ctx, next) => {
 const handle = (next) => async (req, res) => {
   try {
     await next(req, res);
-  } catch (e) {}
+  } catch (e) {
+    res.status(500).json({ error: true });
+    console.log(e);
+  }
 };
 
 app.use(cors());

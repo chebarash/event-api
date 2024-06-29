@@ -5,6 +5,14 @@ const eventRoute = async (req, res) =>
     await events
       .aggregate([
         {
+          $match: {
+            date: {
+              $gte: new Date(),
+              $lt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10),
+            },
+          },
+        },
+        {
           $lookup: {
             from: `users`,
             localField: `author`,

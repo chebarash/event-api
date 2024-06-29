@@ -17,6 +17,7 @@ const userRoute = require(`./routes/user`);
 const MyContext = require(`./context`);
 
 const users = require(`./models/user`);
+const events = require("./models/event");
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 
@@ -35,6 +36,72 @@ bot.start(async (ctx) => {
   } catch (e) {
     await error(ctx, e);
   }
+});
+
+bot.on("inline_query", async (ctx) => {
+  const offset = parseInt(ctx.inlineQuery.offset) || 0;
+  const data = await events
+    .aggregate([
+      {
+        $lookup: {
+          from: `users`,
+          localField: `author`,
+          foreignField: `_id`,
+          as: `author`,
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          picture: 1,
+          description: 1,
+          date: 1,
+          venue: 1,
+          duration: 1,
+          author: { $arrayElemAt: [`$author`, 0] },
+        },
+      },
+    ])
+    .toArray();
+
+  let results = data
+    .slice(offset, offset + 10)
+    .map(
+      ({
+        _id,
+        title,
+        picture,
+        description,
+        date,
+        venue,
+        duration,
+        author,
+      }) => ({
+        type: `photo`,
+        id: _id,
+        photo_url: picture,
+        thumbnail_url: picture,
+        description: title,
+        caption: "*" + title + "*\n" + description,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: `event`,
+                callback_data: "moreinfo",
+              },
+            ],
+          ],
+        },
+      })
+    );
+
+  return await ctx.answerInlineQuery(results, {
+    is_personal: true,
+    next_offset: offset + results.length,
+    cache_time: 10,
+  });
 });
 
 bot.use(async (ctx, next) => {

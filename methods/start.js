@@ -5,7 +5,7 @@ const start = (ctx) =>
         [
           {
             text: `event`,
-            web_app: { url: `https://event.chebarash.uz/${ctx.user._id}` },
+            web_app: { url: `https://event.chebarash.uz` },
           },
         ],
       ],

@@ -3,8 +3,8 @@ const temp = require(`../temp`);
 
 const newuser = async (id, tempId) => {
   temp[tempId].id = id;
-  await users.deleteMany({ id });
-  await users.deleteMany({ email: temp[tempId].email });
+  if (await users.findOne({ email: temp[tempId].email }))
+    return await users.updateOne({ email: temp[tempId].email }, temp[tempId]);
   return await users.insertOne(temp[tempId]);
 };
 

@@ -1,15 +1,23 @@
 const start = (ctx) =>
-  ctx.reply(`welcome`, {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: `event`,
-            web_app: { url: `https://event.chebarash.uz` },
-          },
+  ctx.reply(
+    `<b>Hey ${ctx.user.given_name
+      .toLowerCase()
+      .replace(/\b(\w)/g, (x) =>
+        x.toUpperCase()
+      )}</b>, check out what interesting events there are today.`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: `Open Event`,
+              web_app: { url: `https://event.chebarash.uz` },
+            },
+          ],
         ],
-      ],
-    },
-  });
+      },
+      parse_mode: `HTML`,
+    }
+  );
 
 module.exports = start;

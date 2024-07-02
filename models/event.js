@@ -2,7 +2,7 @@ const database = require(`../db`);
 
 const events = database.collection(`events`);
 
-events.getEvent = async () => {
+events.getEvent = async (match = {}) => {
   const date = new Date();
   date.setUTCHours(0, 0, 0, 0);
   const time = date.getTime();
@@ -10,6 +10,7 @@ events.getEvent = async () => {
     .aggregate([
       {
         $match: {
+          ...match,
           date: {
             $gte: time,
             $lte: time + 60 * 60 * 1000 * 24 * 10,

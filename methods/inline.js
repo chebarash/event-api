@@ -2,7 +2,9 @@ const events = require("../models/event");
 
 const inline = async (ctx) => {
   const offset = parseInt(ctx.inlineQuery.offset) || 0;
-  const data = await events.getEvent();
+  const data = await events.getEvent({
+    title: { $regex: ctx.inlineQuery.query, $options: "i" },
+  });
 
   let results = data
     .slice(offset, offset + 10)
@@ -28,7 +30,7 @@ const inline = async (ctx) => {
             inline_keyboard: [
               [
                 {
-                  text: `event`,
+                  text: `Open in Event`,
                   url: `https://t.me/pueventbot/event?startapp=${_id}`,
                 },
               ],

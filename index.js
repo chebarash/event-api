@@ -8,6 +8,7 @@ const error = require(`./methods/error`);
 const login = require(`./methods/login`);
 const newuser = require(`./methods/newuser`);
 const log = require(`./methods/log`);
+const inline = require("./methods/inline");
 
 const authRoute = require(`./routes/auth`);
 const callbackRoute = require(`./routes/callback`);
@@ -17,7 +18,6 @@ const userRoute = require(`./routes/user`);
 const MyContext = require(`./context`);
 
 const users = require(`./models/user`);
-const events = require(`./models/event`);
 
 const { TOKEN, VERCEL_URL, PORT } = process.env;
 
@@ -38,49 +38,7 @@ bot.start(async (ctx) => {
   }
 });
 
-bot.on(`inline_query`, async (ctx) => {
-  const offset = parseInt(ctx.inlineQuery.offset) || 0;
-  const data = await events.getEvent();
-
-  let results = data
-    .slice(offset, offset + 10)
-    .map(
-      ({
-        _id,
-        title,
-        picture,
-        description,
-        date,
-        venue,
-        duration,
-        author,
-      }) => ({
-        type: `photo`,
-        id: _id,
-        photo_url: picture,
-        thumbnail_url: picture,
-        description: title,
-        caption: `*` + title + `*\n` + description,
-        parse_mode: `Markdown`,
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: `event`,
-                url: `https://t.me/pueventbot/event?startapp=${_id}`,
-              },
-            ],
-          ],
-        },
-      })
-    );
-
-  return await ctx.answerInlineQuery(results, {
-    is_personal: true,
-    next_offset: offset + results.length,
-    cache_time: 10,
-  });
-});
+bot.on(`inline_query`, inline);
 
 bot.use(async (ctx, next) => {
   try {

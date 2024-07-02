@@ -2,7 +2,7 @@ const { GOOGLE_AUTH_URL } = process.env;
 
 const login = (ctx) =>
   ctx.reply(
-    `Welcome to the bot where you can become part of the university community.\nTo continue, you must <b>log in using your student email</b>.`,
+    `Welcome to the bot where you can become part of the university community.\n\nTo continue, you must <b>log in using your student email</b>.`,
     {
       reply_markup: {
         inline_keyboard: [

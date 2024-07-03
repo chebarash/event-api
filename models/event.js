@@ -4,7 +4,8 @@ const events = database.collection(`events`);
 
 events.getEvent = async (match = {}) => {
   const date = new Date();
-  date.setUTCHours(0, 0, 0, 0);
+  date.setHours(date.getHours() + 5);
+  date.setHours(0, 0, 0, 0);
   const time = date.getTime();
   return await events
     .aggregate([
@@ -34,6 +35,11 @@ events.getEvent = async (match = {}) => {
           venue: 1,
           duration: 1,
           author: { $arrayElemAt: [`$author`, 0] },
+        },
+      },
+      {
+        $sort: {
+          date: 1,
         },
       },
     ])

@@ -6,16 +6,12 @@ events.getEvent = async (match = {}) => {
   const date = new Date();
   date.setHours(date.getHours() + 5);
   date.setHours(0, 0, 0, 0);
-  const time = date.getTime();
   return await events
     .aggregate([
       {
         $match: {
           ...match,
-          date: {
-            $gte: time,
-            $lte: time + 60 * 60 * 1000 * 24 * 10,
-          },
+          date: { $gte: date.getTime() },
         },
       },
       {

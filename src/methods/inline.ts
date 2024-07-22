@@ -35,12 +35,18 @@ const inline = async (
           thumbnail_url: picture,
           description: title,
           caption: `<b>${title}⚡️</b>\n\n${description}\n\n<b>📍 Venue:</b> ${venue}\n<b>🗓 Date:</b> ${
-            d.toLocaleDateString(`en`, { month: `long`, timeZone: `Etc/UTC` }) +
+            d.toLocaleDateString(`en`, {
+              month: `long`,
+              timeZone: `Asia/Tashkent`,
+            }) +
             ` ` +
-            d.getDate()
+            d.toLocaleDateString(`en`, {
+              day: `numeric`,
+              timeZone: `Asia/Tashkent`,
+            })
           }\n<b>⏱ Time:</b> ${d.toLocaleString(`en`, {
             timeStyle: `short`,
-            timeZone: `Etc/UTC`,
+            timeZone: `Asia/Tashkent`,
           })}`,
           parse_mode: `HTML`,
           reply_markup: {

@@ -13,12 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const registrations_1 = __importDefault(require("../models/registrations"));
 const registration = {
-    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, query: { _id } }, res) {
+    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, query: { _id, registered } }, res) {
         if (!user)
             return res.status(500).json({ message: `User not found` });
         if (!_id)
             return res.status(500).json({ message: `_id not found` });
-        return res.json(yield new registrations_1.default({ user: user._id, event: _id }).save());
+        if (registered)
+            yield registrations_1.default.deleteOne({ user: user._id, event: _id });
+        else {
+            if (!(yield registrations_1.default.findOne({ user: user._id, event: _id })))
+                yield new registrations_1.default({ user: user._id, event: _id }).save();
+        }
+        return res.json({ registered: !registered });
     }),
 };
 module.exports = registration;

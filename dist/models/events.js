@@ -18,6 +18,7 @@ const getEvents = (match = {}) => {
     return Events.find(Object.assign(Object.assign({}, match), { date: { $gte: date } }))
         .sort({ date: 1 })
         .populate(`authors`)
+        .lean()
         .exec();
 };
 exports.getEvents = getEvents;

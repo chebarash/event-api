@@ -19,6 +19,7 @@ export const getEvents = (match = {}): Promise<Array<EventType>> => {
   return Events.find({ ...match, date: { $gte: date } })
     .sort({ date: 1 })
     .populate(`authors`)
+    .lean()
     .exec();
 };
 

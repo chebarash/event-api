@@ -29,6 +29,9 @@ export type EventType = {
   date: Date;
   venue: string;
   duration: number;
+  content?: { type: `video` | `photo`; fileId: string };
+  template?: string;
+  button?: string;
 };
 
 export type MethodsType =

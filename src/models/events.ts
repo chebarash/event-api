@@ -9,6 +9,12 @@ const eventSchema = new Schema<EventType>({
   date: { type: Date, required: true },
   venue: { type: String, required: true },
   duration: { type: Number, required: true },
+  content: {
+    type: { type: String, enum: ["video", "photo"], required: true },
+    fileId: { type: String, required: true },
+  },
+  template: { type: String },
+  button: { type: String },
 });
 
 const Events = model<EventType>("events", eventSchema);

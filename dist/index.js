@@ -75,6 +75,8 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { authorization } = req.headers;
@@ -90,7 +92,7 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
 (0, mongoose_1.connect)(DATABASE_URL)
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Connected to MongoDB`);
-    app.use(yield bot.createWebhook({ domain: VERCEL_URL }));
+    yield bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
     app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
     });

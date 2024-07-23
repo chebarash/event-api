@@ -81,6 +81,9 @@ bot.use(async (ctx, next) => {
 });
 
 app.use(cors());
+app.use(express.json());
+
+app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
 
 app.use(async (req, res, next) => {
   try {
@@ -96,7 +99,7 @@ app.use(async (req, res, next) => {
 connect(DATABASE_URL)
   .then(async () => {
     console.log(`Connected to MongoDB`);
-    app.use(await bot.createWebhook({ domain: VERCEL_URL }));
+    await bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
     app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });

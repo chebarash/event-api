@@ -24,6 +24,7 @@ const newuser_1 = __importDefault(require("./methods/newuser"));
 const login_1 = __importDefault(require("./methods/login"));
 const start_1 = __importDefault(require("./methods/start"));
 const inline_1 = __importDefault(require("./methods/inline"));
+const axios_1 = __importDefault(require("axios"));
 const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, } = process.env;
 if ([
     TOKEN,
@@ -77,6 +78,24 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
+app.get("/photo/:fileId", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const fileId = req.params.fileId;
+    if (!fileId)
+        return res.status(400).send("File ID is required");
+    try {
+        const file = yield bot.telegram.getFile(fileId);
+        if (!file.file_path)
+            return res.status(404).send("File not found");
+        const fileUrl = `https://api.telegram.org/file/bot${TOKEN}/${file.file_path}`;
+        const response = yield axios_1.default.get(fileUrl, { responseType: "stream" });
+        res.setHeader("Content-Type", response.headers["content-type"] || "image/jpeg");
+        res.setHeader("Content-Disposition", `inline; filename="photo.jpg"`);
+        response.data.pipe(res);
+    }
+    catch (error) {
+        res.status(500).send("Error fetching the file");
+    }
+}));
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { authorization } = req.headers;
@@ -98,6 +117,6 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     });
 }))
     .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
+    console.error(`Error connecting to MongoDB:`, error);
 });
 module.exports = app;

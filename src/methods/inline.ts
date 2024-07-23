@@ -7,15 +7,13 @@ import {
 import { getEvents } from "../models/events";
 
 const loadTemplate = (
-  template: string = `*{{title}}*\n\n{{description}}\n\n*Venue:* {{venue}}\n*Date:* {{date}}\n*Time:* {{time}}`,
+  template: string = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venue:</b> {{venue}}\n<b>Date:</b> {{date}}\n<b>Time:</b> {{time}}`,
   variables: { [name: string]: any }
 ): string => {
-  Object.entries(variables).forEach(([name, value]) => {
-    template = template.replace(
-      new RegExp(`{{${name}}}`, "g"),
-      value.replace(/\-/g, `\\-`).replace(/\./g, `\\.`)
-    );
-  });
+  Object.entries(variables).forEach(
+    ([name, value]) =>
+      (template = template.replace(new RegExp(`{{${name}}}`, "g"), value))
+  );
   return template;
 };
 
@@ -46,11 +44,19 @@ const inline = async (
         const d = new Date(date);
         const hours = duration / (1000 * 60 * 60);
         return {
-          type: `photo`,
-          id: `${_id}`,
-          photo_url: picture,
+          ...(content && content.type == `video`
+            ? {
+                type: `video`,
+                video_file_id: content.fileId,
+                title,
+              }
+            : {
+                type: `photo`,
+                photo_file_id: content ? content.fileId : picture,
+                description: title,
+              }),
           thumbnail_url: picture,
-          description: title,
+          id: `${_id}`,
           caption: loadTemplate(template, {
             title,
             description,
@@ -74,7 +80,7 @@ const inline = async (
               .toLowerCase()
               .replace(/\b(\w)/g, (x) => x.toUpperCase()),
           }),
-          parse_mode: `MarkdownV2`,
+          parse_mode: `HTML`,
           reply_markup: {
             inline_keyboard: [
               [

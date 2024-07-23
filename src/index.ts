@@ -13,6 +13,8 @@ import newuser from "./methods/newuser";
 import login from "./methods/login";
 import start from "./methods/start";
 import inline from "./methods/inline";
+import Events from "./models/events";
+import axios from "axios";
 
 const {
   TOKEN,
@@ -85,6 +87,32 @@ app.use(express.json());
 
 app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
 
+app.get("/photo/:fileId", async (req, res) => {
+  const fileId = req.params.fileId;
+
+  if (!fileId) return res.status(400).send("File ID is required");
+
+  try {
+    const file = await bot.telegram.getFile(fileId);
+
+    if (!file.file_path) return res.status(404).send("File not found");
+
+    const fileUrl = `https://api.telegram.org/file/bot${TOKEN}/${file.file_path}`;
+
+    const response = await axios.get(fileUrl, { responseType: "stream" });
+
+    res.setHeader(
+      "Content-Type",
+      response.headers["content-type"] || "image/jpeg"
+    );
+    res.setHeader("Content-Disposition", `inline; filename="photo.jpg"`);
+
+    response.data.pipe(res);
+  } catch (error) {
+    res.status(500).send("Error fetching the file");
+  }
+});
+
 app.use(async (req, res, next) => {
   try {
     const { authorization } = req.headers;
@@ -105,7 +133,7 @@ connect(DATABASE_URL)
     });
   })
   .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
+    console.error(`Error connecting to MongoDB:`, error);
   });
 
 export = app;

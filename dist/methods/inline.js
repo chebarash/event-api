@@ -9,10 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const events_1 = require("../models/events");
-const loadTemplate = (template = `*{{title}}*\n\n{{description}}\n\n*Venue:* {{venue}}\n*Date:* {{date}}\n*Time:* {{time}}`, variables) => {
-    Object.entries(variables).forEach(([name, value]) => {
-        template = template.replace(new RegExp(`{{${name}}}`, "g"), value.replace(/\-/g, `\\-`).replace(/\./g, `\\.`));
-    });
+const loadTemplate = (template = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venue:</b> {{venue}}\n<b>Date:</b> {{date}}\n<b>Time:</b> {{time}}`, variables) => {
+    Object.entries(variables).forEach(([name, value]) => (template = template.replace(new RegExp(`{{${name}}}`, "g"), value)));
     return template;
 };
 const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
@@ -25,13 +23,17 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         .map(({ _id, title, picture, description, date, venue, duration, authors, template, content, button, }) => {
         const d = new Date(date);
         const hours = duration / (1000 * 60 * 60);
-        return {
-            type: `photo`,
-            id: `${_id}`,
-            photo_url: picture,
-            thumbnail_url: picture,
-            description: title,
-            caption: loadTemplate(template, {
+        return Object.assign(Object.assign({}, (content && content.type == `video`
+            ? {
+                type: `video`,
+                video_file_id: content.fileId,
+                title,
+            }
+            : {
+                type: `photo`,
+                photo_file_id: content ? content.fileId : picture,
+                description: title,
+            })), { thumbnail_url: picture, id: `${_id}`, caption: loadTemplate(template, {
                 title,
                 description,
                 date: d.toLocaleDateString(`en`, {
@@ -52,9 +54,7 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
                 author: authors[0].given_name
                     .toLowerCase()
                     .replace(/\b(\w)/g, (x) => x.toUpperCase()),
-            }),
-            parse_mode: `MarkdownV2`,
-            reply_markup: {
+            }), parse_mode: `HTML`, reply_markup: {
                 inline_keyboard: [
                     [
                         {
@@ -63,8 +63,7 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
                         },
                     ],
                 ],
-            },
-        };
+            } });
     });
     return yield ctx.answerInlineQuery(results, {
         is_personal: true,

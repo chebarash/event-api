@@ -17,13 +17,15 @@ const callback_1 = __importDefault(require("./routes/callback"));
 const event_1 = __importDefault(require("./routes/event"));
 const register_1 = __importDefault(require("./routes/register"));
 const user_1 = __importDefault(require("./routes/user"));
+const photo_1 = __importDefault(require("./routes/photo"));
 const appRouter = (0, express_1.Router)();
 const routes = [
-    ["/auth", auth_1.default],
-    ["/callback", callback_1.default],
-    ["/event", event_1.default],
-    ["/registration", register_1.default],
-    ["/user", user_1.default],
+    [`/auth`, auth_1.default],
+    [`/callback`, callback_1.default],
+    [`/event`, event_1.default],
+    [`/registration`, register_1.default],
+    [`/user`, user_1.default],
+    [`/photo/:fileId`, photo_1.default],
 ];
 for (const [route, methods] of routes) {
     for (const method in methods) {

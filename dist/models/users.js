@@ -8,5 +8,5 @@ const usersSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     id: { type: Number, required: true, unique: true },
 });
-const Users = (0, mongoose_1.model)("users", usersSchema);
+const Users = (0, mongoose_1.model)(`users`, usersSchema);
 exports.default = Users;

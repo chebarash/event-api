@@ -2,8 +2,8 @@ import { Schema, model } from "mongoose";
 import { RegistrationType } from "../types/types";
 
 const registrationSchema = new Schema<RegistrationType>({
-  user: { type: Schema.Types.ObjectId, ref: "users", required: true },
-  event: { type: Schema.Types.ObjectId, ref: "events", required: true },
+  user: { type: Schema.Types.ObjectId, ref: `users`, required: true },
+  event: { type: Schema.Types.ObjectId, ref: `events`, required: true },
   date: { type: Date, default: Date.now },
   participated: { type: Date },
   rate: { type: Number },
@@ -13,7 +13,7 @@ const registrationSchema = new Schema<RegistrationType>({
 registrationSchema.index({ user: 1, event: 1 }, { unique: true });
 
 const Registrations = model<RegistrationType>(
-  "registrations",
+  `registrations`,
   registrationSchema
 );
 

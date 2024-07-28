@@ -10,13 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const events_1 = require("../models/events");
 const loadTemplate = (template = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venue:</b> {{venue}}\n<b>Date:</b> {{date}}\n<b>Time:</b> {{time}}`, variables) => {
-    Object.entries(variables).forEach(([name, value]) => (template = template.replace(new RegExp(`{{${name}}}`, "g"), value)));
+    Object.entries(variables).forEach(([name, value]) => (template = template.replace(new RegExp(`{{${name}}}`, `g`), value)));
     return template;
 };
 const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const offset = parseInt(ctx.inlineQuery.offset) || 0;
     const data = yield (0, events_1.getEvents)({
-        title: { $regex: ctx.inlineQuery.query, $options: "i" },
+        title: { $regex: ctx.inlineQuery.query, $options: `i` },
     });
     let results = data
         .slice(offset, offset + 10)

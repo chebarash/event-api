@@ -5,19 +5,19 @@ const eventSchema = new Schema<EventType>({
   title: { type: String, required: true },
   picture: { type: String, required: true },
   description: { type: String, required: true },
-  authors: [{ type: Schema.Types.ObjectId, ref: "users", required: true }],
+  authors: [{ type: Schema.Types.ObjectId, ref: `users`, required: true }],
   date: { type: Date, required: true },
   venue: { type: String, required: true },
   duration: { type: Number, required: true },
   content: {
-    type: { type: String, enum: ["video", "photo"], required: true },
+    type: { type: String, enum: [`video`, `photo`], required: true },
     fileId: { type: String, required: true },
   },
   template: { type: String },
   button: { type: String },
 });
 
-const Events = model<EventType>("events", eventSchema);
+const Events = model<EventType>(`events`, eventSchema);
 
 export const getEvents = (match = {}): Promise<Array<EventType>> => {
   const date = new Date();

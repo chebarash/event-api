@@ -35,14 +35,14 @@ export type EventType = {
 };
 
 export type MethodsType =
-  | "all"
-  | "get"
-  | "post"
-  | "put"
-  | "delete"
-  | "patch"
-  | "options"
-  | "head";
+  | `all`
+  | `get`
+  | `post`
+  | `put`
+  | `delete`
+  | `patch`
+  | `options`
+  | `head`;
 
 export interface MyContext extends Context {
   user: UserType;

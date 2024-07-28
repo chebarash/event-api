@@ -1,14 +1,29 @@
 {
-  "name": "event-bot",
+  "name": "event-api",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/index"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "chebarash (https://github.com/chebarash)",
+  "license": "GPL-3.0",
+  "description": "The ultimate hub for students.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chebarash/event-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chebarash/event-api/issues"
+  },
+  "homepage": "https://github.com/chebarash/event-api#readme",
+  "keywords": [
+    "event",
+    "telegram",
+    "bot",
+    "backend",
+    "typescript"
+  ],
   "dependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",

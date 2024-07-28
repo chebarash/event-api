@@ -6,6 +6,7 @@ import callback from "./routes/callback";
 import event from "./routes/event";
 import registration from "./routes/register";
 import user from "./routes/user";
+import photo from "./routes/photo";
 
 const appRouter = Router();
 
@@ -17,11 +18,12 @@ const routes: Array<
     }
   ]
 > = [
-  ["/auth", auth],
-  ["/callback", callback],
-  ["/event", event],
-  ["/registration", registration],
-  ["/user", user],
+  [`/auth`, auth],
+  [`/callback`, callback],
+  [`/event`, event],
+  [`/registration`, registration],
+  [`/user`, user],
+  [`/photo/:fileId`, photo],
 ];
 
 for (const [route, methods] of routes) {

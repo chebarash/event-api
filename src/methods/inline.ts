@@ -12,7 +12,7 @@ const loadTemplate = (
 ): string => {
   Object.entries(variables).forEach(
     ([name, value]) =>
-      (template = template.replace(new RegExp(`{{${name}}}`, "g"), value))
+      (template = template.replace(new RegExp(`{{${name}}}`, `g`), value))
   );
   return template;
 };
@@ -22,7 +22,7 @@ const inline = async (
 ) => {
   const offset = parseInt(ctx.inlineQuery.offset) || 0;
   const data = await getEvents({
-    title: { $regex: ctx.inlineQuery.query, $options: "i" },
+    title: { $regex: ctx.inlineQuery.query, $options: `i` },
   });
 
   let results = data

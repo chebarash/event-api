@@ -9,6 +9,6 @@ const usersSchema = new Schema<UserType>({
   id: { type: Number, required: true, unique: true },
 });
 
-const Users = model<UserType>("users", usersSchema);
+const Users = model<UserType>(`users`, usersSchema);
 
 export default Users;

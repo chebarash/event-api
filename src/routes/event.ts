@@ -1,30 +1,32 @@
 import { RequestHandler } from "express";
-import { EventType, MethodsType } from "../types/types";
+import { EventType, MethodsType, RegistrationType } from "../types/types";
 import { getEvents } from "../models/events";
 import Registrations from "../models/registrations";
-import { ObjectId } from "mongoose";
 
 const event: {
   [name in MethodsType]?: RequestHandler;
 } = {
   get: async ({ user }, res) => {
-    const events: Array<EventType & { registered?: boolean }> =
+    const events: Array<EventType & { registration?: RegistrationType }> =
       await getEvents();
 
     if (user) {
       const date = new Date();
       date.setDate(date.getDate() - 1);
-      const registrations = await Registrations.find<{ event: ObjectId }>({
+      const registrations = await Registrations.find({
         user: user._id,
         date: { $gte: date },
-      });
+      })
+        .populate([`user`, `event`])
+        .exec();
 
-      if (registrations && registrations.length)
-        for (let i = 0; i < events.length; i++)
-          if (
-            registrations.some(({ event }) => `${event}` == `${events[i]._id}`)
-          )
-            events[i].registered = true;
+      if (registrations)
+        for (const registration of registrations) {
+          const event = events.findIndex(
+            ({ _id }) => `${_id}` == `${registration.event._id}`
+          );
+          if (event > -1) events[event].registration = registration;
+        }
     }
 
     res.json(events);

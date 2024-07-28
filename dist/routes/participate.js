@@ -11,28 +11,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-const events_1 = require("../models/events");
 const registrations_1 = __importDefault(require("../models/registrations"));
-const event = {
-    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user }, res) {
-        const events = yield (0, events_1.getEvents)();
-        if (user) {
-            const date = new Date();
-            date.setDate(date.getDate() - 1);
-            const registrations = yield registrations_1.default.find({
-                user: user._id,
-                date: { $gte: date },
-            })
-                .populate([`user`, `event`])
-                .exec();
-            if (registrations)
-                for (const registration of registrations) {
-                    const event = events.findIndex(({ _id }) => `${_id}` == `${registration.event._id}`);
-                    if (event > -1)
-                        events[event].registration = registration;
-                }
-        }
-        res.json(events);
+const participate = {
+    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, query: { _id } }, res) {
+        if (!user)
+            return res.status(500).json({ message: `User not found` });
+        if (!_id)
+            return res.status(500).json({ message: `_id not found` });
+        return res.json({
+            registration: yield registrations_1.default.findOneAndUpdate({ event: _id }, { participated: Date.now() }, { new: true }),
+        });
     }),
 };
-module.exports = event;
+module.exports = participate;

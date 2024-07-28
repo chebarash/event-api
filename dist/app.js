@@ -15,17 +15,19 @@ const express_1 = require("express");
 const auth_1 = __importDefault(require("./routes/auth"));
 const callback_1 = __importDefault(require("./routes/callback"));
 const event_1 = __importDefault(require("./routes/event"));
-const register_1 = __importDefault(require("./routes/register"));
+const registration_1 = __importDefault(require("./routes/registration"));
 const user_1 = __importDefault(require("./routes/user"));
 const photo_1 = __importDefault(require("./routes/photo"));
+const participate_1 = __importDefault(require("./routes/participate"));
 const appRouter = (0, express_1.Router)();
 const routes = [
     [`/auth`, auth_1.default],
     [`/callback`, callback_1.default],
     [`/event`, event_1.default],
-    [`/registration`, register_1.default],
+    [`/registration`, registration_1.default],
     [`/user`, user_1.default],
     [`/photo/:fileId`, photo_1.default],
+    [`/participate`, participate_1.default],
 ];
 for (const [route, methods] of routes) {
     for (const method in methods) {

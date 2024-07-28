@@ -4,9 +4,10 @@ import { MethodsType } from "./types/types";
 import auth from "./routes/auth";
 import callback from "./routes/callback";
 import event from "./routes/event";
-import registration from "./routes/register";
+import registration from "./routes/registration";
 import user from "./routes/user";
 import photo from "./routes/photo";
+import participate from "./routes/participate";
 
 const appRouter = Router();
 
@@ -24,6 +25,7 @@ const routes: Array<
   [`/registration`, registration],
   [`/user`, user],
   [`/photo/:fileId`, photo],
+  [`/participate`, participate],
 ];
 
 for (const [route, methods] of routes) {

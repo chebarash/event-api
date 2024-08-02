@@ -18,6 +18,7 @@ const {
   GOOGLE_CALLBACK_URL,
   GOOGLE_CLIENT_SECRET,
   VERCEL_URL,
+  DEV,
 } = process.env;
 
 if (
@@ -59,7 +60,9 @@ app.use(async (req, res, next) => {
 connect(DATABASE_URL)
   .then(async () => {
     console.log(`Connected to MongoDB`);
-    await bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
+    DEV
+      ? bot.launch()
+      : await bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
     app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });

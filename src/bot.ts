@@ -7,6 +7,7 @@ import start from "./methods/start";
 import error from "./methods/error";
 import inline from "./methods/inline";
 import Users from "./models/users";
+import { tempMethod } from "./methods/temp";
 
 const bot = new Telegraf<MyContext>(process.env.TOKEN);
 
@@ -41,5 +42,18 @@ bot.use(async (ctx, next) => {
     await error(ctx, e);
   }
 });
+
+bot.command(`whoami`, (ctx) =>
+  ctx.reply(
+    `<pre><code class="language-json">${JSON.stringify(
+      ctx.user,
+      null,
+      2
+    )}</code></pre>`,
+    { parse_mode: `HTML` }
+  )
+);
+
+tempMethod(bot);
 
 export = bot;

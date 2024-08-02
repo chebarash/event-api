@@ -9,7 +9,7 @@ const error = async (ctx: Context, e: any) => {
   await ctx.telegram.sendMessage(
     adminId,
     `<pre><code class="language-json">${JSON.stringify(
-      { message: e.message, ...e, update: ctx.update },
+      { message: e.message, update: ctx.update },
       null,
       2
     )}</code></pre>`,

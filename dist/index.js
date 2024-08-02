@@ -18,7 +18,7 @@ const mongoose_1 = require("mongoose");
 const users_1 = __importDefault(require("./models/users"));
 const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
-const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, } = process.env;
+const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, } = process.env;
 if ([
     TOKEN,
     PORT,
@@ -53,7 +53,9 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
 (0, mongoose_1.connect)(DATABASE_URL)
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Connected to MongoDB`);
-    yield bot_1.default.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
+    DEV
+        ? bot_1.default.launch()
+        : yield bot_1.default.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
     app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
     });

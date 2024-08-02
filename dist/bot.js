@@ -19,6 +19,7 @@ const start_1 = __importDefault(require("./methods/start"));
 const error_1 = __importDefault(require("./methods/error"));
 const inline_1 = __importDefault(require("./methods/inline"));
 const users_1 = __importDefault(require("./models/users"));
+const temp_1 = require("./methods/temp");
 const bot = new telegraf_1.Telegraf(process.env.TOKEN);
 bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -52,4 +53,6 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, error_1.default)(ctx, e);
     }
 }));
+bot.command(`whoami`, (ctx) => ctx.reply(`<pre><code class="language-json">${JSON.stringify(ctx.user, null, 2)}</code></pre>`, { parse_mode: `HTML` }));
+(0, temp_1.tempMethod)(bot);
 module.exports = bot;

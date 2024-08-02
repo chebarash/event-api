@@ -12,6 +12,6 @@ const { ADMIN_ID } = process.env;
 const adminId = parseInt(ADMIN_ID);
 const error = (ctx, e) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(e);
-    yield ctx.telegram.sendMessage(adminId, `<pre><code class="language-json">${JSON.stringify(Object.assign(Object.assign({ message: e.message }, e), { update: ctx.update }), null, 2)}</code></pre>`, { parse_mode: `HTML` });
+    yield ctx.telegram.sendMessage(adminId, `<pre><code class="language-json">${JSON.stringify({ message: e.message, update: ctx.update }, null, 2)}</code></pre>`, { parse_mode: `HTML` });
 });
 module.exports = error;

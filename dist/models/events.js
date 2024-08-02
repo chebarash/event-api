@@ -11,8 +11,8 @@ const eventSchema = new mongoose_1.Schema({
     venue: { type: String, required: true },
     duration: { type: Number, required: true },
     content: {
-        type: { type: String, enum: [`video`, `photo`], required: true },
-        fileId: { type: String, required: true },
+        type: { type: String, enum: [`video`, `photo`] },
+        fileId: { type: String },
     },
     template: { type: String },
     button: { type: String },

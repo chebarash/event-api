@@ -18,7 +18,10 @@ export type UserType = {
   picture: string;
   email: string;
   id: number;
+  organizer: boolean;
 };
+
+export type ContentType = { type: `video` | `photo`; fileId: string };
 
 export type EventType = {
   _id: ObjectId;
@@ -29,7 +32,7 @@ export type EventType = {
   date: Date;
   venue: string;
   duration: number;
-  content?: { type: `video` | `photo`; fileId: string };
+  content?: ContentType;
   template?: string;
   button?: string;
 };

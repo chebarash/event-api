@@ -6,13 +6,45 @@ import {
 } from "telegraf/typings/core/types/typegram";
 import { getEvents } from "../models/events";
 
+function truncateHtml(html: string, length: number) {
+  const pattern = /<([a-zA-Z0-9\-]+)(\s*[^>]*)?>([\s\S]*?)<\/\1>/g;
+
+  function truncateNode(node: string) {
+    let result = "";
+    if (length <= 0) return "";
+    const list = node.split(pattern);
+    result += list[0];
+    length -= list[0].length;
+    for (let i = 1; i < list.length && length > 0; i += 4) {
+      const tag = list[i],
+        args = list[i + 1],
+        child = list[i + 2];
+
+      result += `<${[tag, args].join(` `)}>${truncateNode(child)}</${tag}>`;
+
+      if (length > 0) {
+        result += list[i + 3];
+        length -= list[i + 3].length;
+      }
+    }
+    return result;
+  }
+
+  return { text: truncateNode(html), length };
+}
+
 const loadTemplate = (
   template: string = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venue:</b> {{venue}}\n<b>Date:</b> {{date}}\n<b>Time:</b> {{time}}`,
   variables: { [name: string]: any }
 ): string => {
-  Object.entries(variables).forEach(
-    ([name, value]) =>
-      (template = template.replace(new RegExp(`{{${name}}}`, `g`), value))
+  Object.entries(variables).forEach(([name, value]) => {
+    if (name != `description`)
+      template = template.replace(new RegExp(`{{${name}}}`, `g`), value);
+  });
+  const { text, length } = truncateHtml(variables.description, 800);
+  template = template.replace(
+    /{{description}}/g,
+    `${text}${length > 0 ? `` : `...\n<b><u>Read More In Event</u></b>`}`
   );
   return template;
 };

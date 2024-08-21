@@ -9,8 +9,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const events_1 = require("../models/events");
+function truncateHtml(html, length) {
+    const pattern = /<([a-zA-Z0-9\-]+)(\s*[^>]*)?>([\s\S]*?)<\/\1>/g;
+    function truncateNode(node) {
+        let result = "";
+        if (length <= 0)
+            return "";
+        const list = node.split(pattern);
+        result += list[0];
+        length -= list[0].length;
+        for (let i = 1; i < list.length && length > 0; i += 4) {
+            const tag = list[i], args = list[i + 1], child = list[i + 2];
+            result += `<${[tag, args].join(` `)}>${truncateNode(child)}</${tag}>`;
+            if (length > 0) {
+                result += list[i + 3];
+                length -= list[i + 3].length;
+            }
+        }
+        return result;
+    }
+    return { text: truncateNode(html), length };
+}
 const loadTemplate = (template = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venue:</b> {{venue}}\n<b>Date:</b> {{date}}\n<b>Time:</b> {{time}}`, variables) => {
-    Object.entries(variables).forEach(([name, value]) => (template = template.replace(new RegExp(`{{${name}}}`, `g`), value)));
+    Object.entries(variables).forEach(([name, value]) => {
+        if (name != `description`)
+            template = template.replace(new RegExp(`{{${name}}}`, `g`), value);
+    });
+    const { text, length } = truncateHtml(variables.description, 800);
+    template = template.replace(/{{description}}/g, `${text}${length > 0 ? `` : `...\n<b><u>Read More In Event</u></b>`}`);
     return template;
 };
 const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {

@@ -77,9 +77,9 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
                 }),
                 venue,
                 duration: `${hours} ${hours == 1 ? `hour` : `hours`}`,
-                author: authors[0].given_name
-                    .toLowerCase()
-                    .replace(/\b(\w)/g, (x) => x.toUpperCase()),
+                author: [authors[0].given_name, authors[0].family_name]
+                    .map((v) => v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase()))
+                    .join(` `),
             }), parse_mode: `HTML`, reply_markup: {
                 inline_keyboard: [
                     [

@@ -8,6 +8,7 @@ const usersSchema = new Schema<UserType>({
   email: { type: String, required: true, unique: true },
   id: { type: Number, required: true, unique: true },
   organizer: { type: Boolean, default: false },
+  clubs: { type: [String], default: [] },
 });
 
 const Users = model<UserType>(`users`, usersSchema);

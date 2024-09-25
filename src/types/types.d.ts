@@ -1,30 +1,36 @@
-import { ObjectId } from "mongoose";
+import { Document, ObjectId } from "mongoose";
 import { Context } from "telegraf";
 
+export type ClubType = {
+  username: string;
+  name: string;
+  description: string;
+  links: Array<{ url: string; text: string }>;
+  cover: string;
+} & Document;
+
 export type RegistrationType = {
-  _id: ObjectId;
   user: UserType;
   event: EventType;
   date: Date;
   participated?: Date;
   rate?: number;
   comment?: string;
-};
+} & Document;
 
 export type UserType = {
-  _id: ObjectId;
   given_name: string;
   family_name: string;
   picture: string;
   email: string;
   id: number;
   organizer: boolean;
-};
+  clubs: Array<string>;
+} & Document;
 
 export type ContentType = { type: `video` | `photo`; fileId: string };
 
 export type EventType = {
-  _id: ObjectId;
   title: string;
   picture: string;
   description: string;
@@ -35,7 +41,7 @@ export type EventType = {
   content?: ContentType;
   template?: string;
   button?: string;
-};
+} & Document;
 
 export type MethodsType =
   | `all`

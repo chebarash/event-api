@@ -8,6 +8,7 @@ const usersSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     id: { type: Number, required: true, unique: true },
     organizer: { type: Boolean, default: false },
+    clubs: { type: [String], default: [] },
 });
 const Users = (0, mongoose_1.model)(`users`, usersSchema);
 exports.default = Users;

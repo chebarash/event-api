@@ -20,14 +20,46 @@ const error_1 = __importDefault(require("./methods/error"));
 const inline_1 = __importDefault(require("./methods/inline"));
 const users_1 = __importDefault(require("./models/users"));
 const temp_1 = require("./methods/temp");
+const temp_2 = __importDefault(require("./temp"));
+const clubs_1 = __importDefault(require("./models/clubs"));
 const bot = new telegraf_1.Telegraf(process.env.TOKEN);
 bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, log_1.default)(ctx);
         const { id } = ctx.from;
         const tempId = ctx.message.text.split(` `)[1];
-        if (tempId)
-            yield (0, newuser_1.default)(id, tempId);
+        if (tempId) {
+            if (tempId.startsWith(`clb-`)) {
+                const username = tempId.replace(`clb-`, ``);
+                const club = yield clubs_1.default.findOne({ username });
+                if (club) {
+                    ctx.user = (yield users_1.default.findOne({ id }));
+                    if (!ctx.user)
+                        return yield (0, login_1.default)(ctx);
+                    if (ctx.user.clubs.includes(username)) {
+                        return yield ctx.replyWithPhoto(club.cover, {
+                            caption: `You are already registered for the <b>${club.name}</b> club.\n\n${club.description}\n\n${club.links
+                                .map(({ url, text }) => `<a href="${url}">${text}</a>`)
+                                .join(` | `)}`,
+                            parse_mode: `HTML`,
+                        });
+                    }
+                    else {
+                        ctx.user.clubs.push(username);
+                        yield ctx.user.save();
+                        return yield ctx.replyWithPhoto(club.cover, {
+                            caption: `Welcome to the ${club.name} club!\n\n${club.description}\n\n${club.links
+                                .map(({ url, text }) => `<a href="${url}">${text}</a>`)
+                                .join(` | `)}`,
+                            parse_mode: `HTML`,
+                        });
+                    }
+                }
+                return yield ctx.reply("Club not found.");
+            }
+            if (temp_2.default[tempId])
+                yield (0, newuser_1.default)(id, tempId);
+        }
         ctx.user = (yield users_1.default.findOne({ id }));
         if (!ctx.user)
             return yield (0, login_1.default)(ctx);

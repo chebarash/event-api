@@ -64,6 +64,34 @@ bot.start(async (ctx) => {
   }
 });
 
+bot.command(`clb`, async (ctx) => {
+  try {
+    const clubs = (await Clubs.find({}))
+      .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
+      .join(`\n`);
+    await ctx.reply(`Clubs:\n${clubs}`);
+  } catch (e) {
+    await error(ctx, e);
+  }
+});
+
+bot.command(`clubs`, async (ctx) => {
+  try {
+    const clubs = await Clubs.find({});
+
+    for (const { cover, name, description, links } of clubs) {
+      await ctx.replyWithPhoto(cover, {
+        caption: `Welcome to the ${name} club!\n\n${description}\n\n${links
+          .map(({ url, text }) => `<a href="${url}">${text}</a>`)
+          .join(` | `)}`,
+        parse_mode: `HTML`,
+      });
+    }
+  } catch (e) {
+    await error(ctx, e);
+  }
+});
+
 bot.on(`inline_query`, inline);
 
 bot.use(async (ctx, next) => {

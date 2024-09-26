@@ -69,6 +69,33 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, error_1.default)(ctx, e);
     }
 }));
+bot.command(`clb`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const clubs = (yield clubs_1.default.find({}))
+            .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
+            .join(`\n`);
+        yield ctx.reply(`Clubs:\n${clubs}`);
+    }
+    catch (e) {
+        yield (0, error_1.default)(ctx, e);
+    }
+}));
+bot.command(`clubs`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const clubs = yield clubs_1.default.find({});
+        for (const { cover, name, description, links } of clubs) {
+            yield ctx.replyWithPhoto(cover, {
+                caption: `Welcome to the ${name} club!\n\n${description}\n\n${links
+                    .map(({ url, text }) => `<a href="${url}">${text}</a>`)
+                    .join(` | `)}`,
+                parse_mode: `HTML`,
+            });
+        }
+    }
+    catch (e) {
+        yield (0, error_1.default)(ctx, e);
+    }
+}));
 bot.on(`inline_query`, inline_1.default);
 bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {

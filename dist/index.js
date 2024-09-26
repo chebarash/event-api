@@ -70,7 +70,6 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
 (0, mongoose_1.connect)(DATABASE_URL)
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Connected to MongoDB`);
-    yield users_1.default.updateMany({}, { clubs: [] });
     DEV
         ? bot_1.default.launch()
         : yield bot_1.default.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);

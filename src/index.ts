@@ -81,6 +81,7 @@ app.use(async (req, res, next) => {
 connect(DATABASE_URL)
   .then(async () => {
     console.log(`Connected to MongoDB`);
+    await Users.updateMany({}, { clubs: [] })
     DEV
       ? bot.launch()
       : await bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);

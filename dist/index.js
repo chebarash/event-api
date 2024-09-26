@@ -14,14 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const http_1 = __importDefault(require("http"));
 const mongoose_1 = require("mongoose");
 const users_1 = __importDefault(require("./models/users"));
 const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
-const socket_io_1 = require("socket.io");
 const clubs_1 = __importDefault(require("./models/clubs"));
-const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, PROD_URL, DEV, } = process.env;
+const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, } = process.env;
 if ([
     TOKEN,
     PORT,
@@ -31,7 +29,6 @@ if ([
     GOOGLE_CLIENT_ID,
     GOOGLE_CALLBACK_URL,
     GOOGLE_CLIENT_SECRET,
-    PROD_URL,
     VERCEL_URL,
 ].some((v) => !v)) {
     console.error(`Environment Variables not set`);
@@ -39,18 +36,10 @@ if ([
 }
 const app = (0, express_1.default)();
 const port = PORT || 3000;
-const server = http_1.default.createServer(app);
-const io = new socket_io_1.Server(server, {
-    path: "/socket",
-    cors: {
-        origin: PROD_URL,
-        methods: ["GET", "POST"],
-    },
-});
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
-const emitClubList = () => __awaiter(void 0, void 0, void 0, function* () {
+app.get(`/clubs`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const clubs = yield clubs_1.default.find();
         const clubList = yield Promise.all(clubs.map((club) => __awaiter(void 0, void 0, void 0, function* () {
@@ -59,21 +48,13 @@ const emitClubList = () => __awaiter(void 0, void 0, void 0, function* () {
             });
             return { name: club.name, members: membersCount };
         })));
-        const sortedClubList = clubList.sort((a, b) => b.members - a.members);
-        io.emit("clubListUpdate", sortedClubList);
+        res.json(clubList.sort((a, b) => b.members - a.members));
     }
     catch (error) {
+        res.status(500).json([]);
         console.error("Error emitting club list:", error);
     }
-});
-setInterval(emitClubList, 10000);
-io.on("connection", (socket) => {
-    console.log("A client connected");
-    emitClubList();
-    socket.on("disconnect", () => {
-        console.log("A client disconnected");
-    });
-});
+}));
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { authorization } = req.headers;
@@ -92,11 +73,11 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     DEV
         ? bot_1.default.launch()
         : yield bot_1.default.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
-    server.listen(port, () => {
+    app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
     });
 }))
     .catch((error) => {
     console.error(`Error connecting to MongoDB:`, error);
 });
-module.exports = server;
+module.exports = app;

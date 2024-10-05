@@ -46,7 +46,7 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     });
     let results = data
         .slice(offset, offset + 10)
-        .map(({ _id, title, picture, description, date, venue, duration, authors, template, content, button, }) => {
+        .map(({ _id, title, picture, description, date, venue, duration, author, template, content, button, }) => {
         const d = new Date(date);
         const hours = duration / (1000 * 60 * 60);
         return Object.assign(Object.assign({}, (content && content.type == `video`
@@ -77,9 +77,7 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
                 }),
                 venue,
                 duration: `${hours} ${hours == 1 ? `hour` : `hours`}`,
-                author: [authors[0].given_name, authors[0].family_name]
-                    .map((v) => v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase()))
-                    .join(` `),
+                author: author.name,
             }), parse_mode: `HTML`, reply_markup: {
                 inline_keyboard: [
                     [

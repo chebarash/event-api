@@ -2,11 +2,7 @@ import { MyContext } from "../types/types";
 
 const start = (ctx: MyContext) =>
   ctx.reply(
-    `<b>Hey ${ctx.user.given_name
-      .toLowerCase()
-      .replace(/\b(\w)/g, (x: string) =>
-        x.toUpperCase()
-      )}</b>, check out what interesting events there are today.`,
+    `<b>Hey ${ctx.user.name}</b>, check out what interesting events there are today.`,
     {
       reply_markup: {
         inline_keyboard: [

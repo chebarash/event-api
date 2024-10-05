@@ -68,7 +68,7 @@ const inline = async (
         date,
         venue,
         duration,
-        authors,
+        author,
         template,
         content,
         button,
@@ -108,11 +108,7 @@ const inline = async (
             }),
             venue,
             duration: `${hours} ${hours == 1 ? `hour` : `hours`}`,
-            author: [authors[0].given_name, authors[0].family_name]
-              .map((v) =>
-                v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase())
-              )
-              .join(` `),
+            author: author.name,
           }),
           parse_mode: `HTML`,
           reply_markup: {

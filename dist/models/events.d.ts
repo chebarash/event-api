@@ -1,9 +1,12 @@
+import { Schema } from "mongoose";
 import { EventType } from "../types/types";
 declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mongoose").Document<unknown, {}, EventType> & {
+    _id: import("mongoose").ObjectId;
     title: string;
     picture: string;
     description: string;
-    authors: Array<import("../types/types").UserType>;
+    author: import("../types/types").UserType | import("../types/types").ClubType;
+    authorModel: `users` | `clubs`;
     date: Date;
     venue: string;
     duration: number;
@@ -11,7 +14,7 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     template?: string;
     button?: string;
 } & import("mongoose").Document<unknown, any, any> & Required<{
-    _id: unknown;
+    _id: Schema.Types.ObjectId;
 }>, any>;
 export declare const getEvents: (match?: {}) => Promise<Array<EventType>>;
 export default Events;

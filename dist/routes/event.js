@@ -37,28 +37,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const events_1 = __importStar(require("../models/events"));
 const registrations_1 = __importDefault(require("../models/registrations"));
 const bot_1 = __importDefault(require("../bot"));
-const isContentType = (obj) => obj &&
-    (obj.type === "video" || obj.type === "photo") &&
-    typeof obj.fileId === "string";
-const isUserType = (obj) => obj &&
-    typeof obj.given_name === "string" &&
-    typeof obj.family_name === "string" &&
-    typeof obj.picture === "string" &&
-    typeof obj.email === "string" &&
-    typeof obj.id === "number" &&
-    typeof obj.organizer === "boolean";
-const isEventType = (obj) => obj &&
-    typeof obj.title === "string" &&
-    typeof obj.picture === "string" &&
-    typeof obj.description === "string" &&
-    Array.isArray(obj.authors) &&
-    obj.authors.every(isUserType) &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(obj.date) &&
-    typeof obj.venue === "string" &&
-    typeof obj.duration === "number" &&
-    (obj.content === undefined || isContentType(obj.content)) &&
-    (obj.template === undefined || typeof obj.template === "string") &&
-    (obj.button === undefined || typeof obj.button === "string");
 const event = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user }, res) {
         const events = yield (0, events_1.getEvents)();
@@ -81,30 +59,29 @@ const event = {
         res.json(events);
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, body }, res) {
-        if (!(user === null || user === void 0 ? void 0 : user.organizer))
-            return res.status(500).json({ message: `You are not organizer` });
-        if (!isEventType(body))
-            return res.status(500).json({ message: `Wrong data` });
-        const event = yield (yield new events_1.default(body).save()).populate(`authors`);
-        yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${[
-            event.authors[0].given_name,
-            event.authors[0].family_name,
-        ]
-            .map((v) => v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase()))
-            .join(` `)}`, {
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: event.title,
-                            url: `https://t.me/pueventbot/event?startapp=${event._id}`,
-                        },
-                        { text: `delete`, callback_data: `delete//${event._id}` },
+        try {
+            if (!(user === null || user === void 0 ? void 0 : user.organizer) && !(user === null || user === void 0 ? void 0 : user.clubs.length))
+                return res.status(500).json({ message: `You are not organizer` });
+            const event = yield (yield new events_1.default(body).save()).populate(`author`);
+            yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}`, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: event.title,
+                                url: `https://t.me/pueventbot/event?startapp=${event._id}`,
+                            },
+                            { text: `delete`, callback_data: `delete//${event._id}` },
+                        ],
                     ],
-                ],
-            },
-        });
-        res.json(event);
+                },
+            });
+            res.json(event);
+        }
+        catch (error) {
+            console.log(error);
+            res.status(500).json({ message: `Wrong data` });
+        }
     }),
 };
 module.exports = event;

@@ -19,28 +19,12 @@ const filters_1 = require("telegraf/filters");
 const tempMethod = (bot) => {
     bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            if (ctx.user.organizer)
+            if (ctx.user.organizer || ctx.user.clubs.length)
                 yield next();
         }
         catch (e) {
             yield (0, error_1.default)(ctx, e);
         }
-    }));
-    bot.command(`myevents`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-        const events = yield events_1.default.find({ authors: ctx.user._id }).populate(`authors`);
-        ctx.reply(`Events`, {
-            reply_markup: {
-                inline_keyboard: events.map(({ title, _id }) => {
-                    return [
-                        {
-                            text: title,
-                            url: `https://t.me/pueventbot/event?startapp=${_id}`,
-                        },
-                        { text: `delete`, callback_data: `delete//${_id}` },
-                    ];
-                }),
-            },
-        });
     }));
     bot.action(/^delete/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         const _id = ctx.callbackQuery.data.split(`//`)[1];

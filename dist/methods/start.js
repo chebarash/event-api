@@ -1,7 +1,5 @@
 "use strict";
-const start = (ctx) => ctx.reply(`<b>Hey ${ctx.user.given_name
-    .toLowerCase()
-    .replace(/\b(\w)/g, (x) => x.toUpperCase())}</b>, check out what interesting events there are today.`, {
+const start = (ctx) => ctx.reply(`<b>Hey ${ctx.user.name}</b>, check out what interesting events there are today.`, {
     reply_markup: {
         inline_keyboard: [
             [

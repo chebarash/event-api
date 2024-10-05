@@ -7,29 +7,10 @@ import { message } from "telegraf/filters";
 export const tempMethod = (bot: Telegraf<MyContext>) => {
   bot.use(async (ctx, next) => {
     try {
-      if (ctx.user.organizer) await next();
+      if (ctx.user.organizer || ctx.user.clubs.length) await next();
     } catch (e) {
       await error(ctx, e);
     }
-  });
-
-  bot.command(`myevents`, async (ctx) => {
-    const events = await Events.find({ authors: ctx.user._id }).populate(
-      `authors`
-    );
-    ctx.reply(`Events`, {
-      reply_markup: {
-        inline_keyboard: events.map(({ title, _id }) => {
-          return [
-            {
-              text: title,
-              url: `https://t.me/pueventbot/event?startapp=${_id}`,
-            },
-            { text: `delete`, callback_data: `delete//${_id}` },
-          ];
-        }),
-      },
-    });
   });
 
   bot.action(/^delete/g, async (ctx) => {

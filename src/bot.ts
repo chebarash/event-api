@@ -1,92 +1,99 @@
 import { Telegraf } from "telegraf";
-import { MyContext, UserType } from "./types/types";
+import { MyContext, UserExtendedType } from "./types/types";
 import log from "./methods/log";
-import newuser from "./methods/newuser";
 import login from "./methods/login";
 import start from "./methods/start";
 import error from "./methods/error";
 import inline from "./methods/inline";
-import Users from "./models/users";
+import Users, { getUser } from "./models/users";
 import { tempMethod } from "./methods/temp";
-import temp from "./temp";
 import Clubs from "./models/clubs";
+import { InlineKeyboardMarkup } from "telegraf/typings/core/types/typegram";
 
 const bot = new Telegraf<MyContext>(process.env.TOKEN);
+
+const getClub = async (ctx: MyContext, query: { [name: string]: any } = {}) => {
+  const club = await Clubs.findOne(query);
+
+  if (!club) return await ctx.answerCbQuery(`Club not found.`);
+
+  const caption = `<b>${club.name}</b>\n\n${club.description}\n\n${club.links
+    .map(({ url, text }) => `<a href="${url}">${text}</a>`)
+    .join(` | `)}`;
+
+  const reply_markup: InlineKeyboardMarkup = {
+    inline_keyboard: [
+      [
+        {
+          text: ctx.user.member.map((_id) => `${_id}`).includes(`${club._id}`)
+            ? `Leave`
+            : `Join`,
+          callback_data: `clb//${club._id}`,
+        },
+      ],
+      [{ text: `All Clubs`, callback_data: `clubs` }],
+    ],
+  };
+
+  return ctx.callbackQuery
+    ? await ctx.editMessageMedia(
+        {
+          type: `photo`,
+          media: club.cover,
+          caption,
+          parse_mode: `HTML`,
+        },
+        { reply_markup }
+      )
+    : await ctx.replyWithPhoto(club.cover, {
+        caption,
+        parse_mode: `HTML`,
+        reply_markup,
+      });
+};
+
+const getClubs = async (ctx: MyContext) => {
+  const clubs = await Clubs.find({});
+
+  const media = `AgACAgIAAxkBAAIqHmcIDx23OO0mps3c52_tAAEL1rXNxQAC2ekxGzp-QUgtKkxYQQ24CwEAAwIAA3cAAzYE`;
+  const caption = `Clubs:`;
+  const reply_markup: InlineKeyboardMarkup = {
+    inline_keyboard: clubs.map(({ _id, name }) => [
+      { text: name, callback_data: `club//${_id}` },
+    ]),
+  };
+
+  return ctx.callbackQuery
+    ? await ctx.editMessageMedia(
+        {
+          type: `photo`,
+          media,
+          caption,
+        },
+        {
+          reply_markup,
+        }
+      )
+    : await ctx.replyWithPhoto(media, { caption, reply_markup });
+};
 
 bot.start(async (ctx) => {
   try {
     await log(ctx);
     const { id } = ctx.from;
-    const tempId = ctx.message.text.split(` `)[1];
+    const option = ctx.message.text.split(` `)[1];
 
-    if (tempId) {
-      if (tempId.startsWith(`clb-`)) {
-        const username = tempId.replace(`clb-`, ``);
-        const club = await Clubs.findOne({ username });
+    ctx.user = (await getUser({ id })) as UserExtendedType;
+    if (!ctx.user) return await login(ctx, option);
 
-        if (club) {
-          ctx.user = (await Users.findOne({ id })) as UserType;
-          if (!ctx.user) return await login(ctx);
+    if (option === `clubs`) return await getClubs(ctx);
 
-          if (ctx.user.clubs.includes(username)) {
-            return await ctx.replyWithPhoto(club.cover, {
-              caption: `You are already registered for the <b>${
-                club.name
-              }</b> club.\n\n${club.description}\n\n${club.links
-                .map(({ url, text }) => `<a href="${url}">${text}</a>`)
-                .join(` | `)}`,
-              parse_mode: `HTML`,
-            });
-          } else {
-            ctx.user.clubs.push(username);
-            await ctx.user.save();
-            return await ctx.replyWithPhoto(club.cover, {
-              caption: `Welcome to the ${club.name} club!\n\n${
-                club.description
-              }\n\n${club.links
-                .map(({ url, text }) => `<a href="${url}">${text}</a>`)
-                .join(` | `)}`,
-              parse_mode: `HTML`,
-            });
-          }
-        }
-        return await ctx.reply("Club not found.");
-      }
-
-      if (temp[tempId]) await newuser(id, tempId);
+    if (option?.startsWith(`clb-`)) {
+      const username = option.replace(`clb-`, ``);
+      return await getClub(ctx, { username });
     }
 
-    ctx.user = (await Users.findOne({ id })) as UserType;
-    if (!ctx.user) return await login(ctx);
     return await start(ctx);
-  } catch (e) {
-    await error(ctx, e);
-  }
-});
-
-bot.command(`clb`, async (ctx) => {
-  try {
-    const clubs = (await Clubs.find({}))
-      .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
-      .join(`\n`);
-    await ctx.reply(`Clubs:\n${clubs}`);
-  } catch (e) {
-    await error(ctx, e);
-  }
-});
-
-bot.command(`clubs`, async (ctx) => {
-  try {
-    const clubs = await Clubs.find({});
-
-    for (const { cover, name, description, links } of clubs) {
-      await ctx.replyWithPhoto(cover, {
-        caption: `Welcome to the ${name} club!\n\n${description}\n\n${links
-          .map(({ url, text }) => `<a href="${url}">${text}</a>`)
-          .join(` | `)}`,
-        parse_mode: `HTML`,
-      });
-    }
   } catch (e) {
     await error(ctx, e);
   }
@@ -99,12 +106,55 @@ bot.use(async (ctx, next) => {
     if (ctx.from) {
       const { id } = ctx.from;
 
-      ctx.user = (await Users.findOne({ id })) as UserType;
+      ctx.user = (await getUser({ id })) as UserExtendedType;
       if (!ctx.user) return await login(ctx);
     }
 
     await next();
     await log(ctx);
+  } catch (e) {
+    await error(ctx, e);
+  }
+});
+
+bot.action(/^clb/g, async (ctx) => {
+  const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];
+  const club = await Clubs.findOne({ _id });
+  if (!club) return await ctx.answerCbQuery(`Club not found.`);
+  const includes = ctx.user.member.map((_id) => `${_id}`).includes(_id);
+  await Users.updateOne(
+    { id: ctx.user.id },
+    {
+      member: includes
+        ? ctx.user.member.filter((id) => `${id}` != _id)
+        : [_id, ...ctx.user.member],
+    }
+  );
+  await ctx.answerCbQuery(
+    includes ? `You left the club.` : `You joined the club.`
+  );
+  await ctx.editMessageReplyMarkup({
+    inline_keyboard: [
+      [{ text: includes ? `Join` : `Leave`, callback_data: `clb//${_id}` }],
+      [{ text: `All Clubs`, callback_data: `clubs` }],
+    ],
+  });
+});
+
+bot.command(`clubs`, getClubs);
+bot.action(`clubs`, getClubs);
+
+bot.action(/^club/g, async (ctx) => {
+  const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];
+  getClub(ctx, { _id });
+});
+
+bot.command(`clb`, async (ctx) => {
+  try {
+    const clubs = (await Clubs.find({}))
+      .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
+      .join(`\n`);
+    await ctx.reply(`Clubs:\n${clubs}`);
   } catch (e) {
     await error(ctx, e);
   }

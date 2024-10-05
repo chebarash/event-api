@@ -3,11 +3,12 @@ import express from "express";
 import cors from "cors";
 import { connect } from "mongoose";
 
-import Users from "./models/users";
+import Users, { getUser } from "./models/users";
 
 import appRouter from "./app";
 import bot from "./bot";
 import Clubs from "./models/clubs";
+import Events from "./models/events";
 
 const {
   TOKEN,
@@ -54,7 +55,7 @@ app.get(`/clubs`, async (req, res) => {
     const clubList = await Promise.all(
       clubs.map(async (club) => {
         const membersCount = await Users.countDocuments({
-          clubs: club.username,
+          member: club._id,
         });
         return { name: club.name, members: membersCount };
       })
@@ -70,7 +71,7 @@ app.get(`/clubs`, async (req, res) => {
 app.use(async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    if (authorization) req.user = await Users.findOne({ id: authorization });
+    if (authorization) req.user = await getUser({ id: authorization });
     return next();
   } catch (e) {
     console.log(e);

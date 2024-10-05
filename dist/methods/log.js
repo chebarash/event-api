@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const { ADMIN_ID } = process.env;
 const adminId = parseInt(ADMIN_ID);
 const log = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!ctx.from)
+    if (!ctx.from || !ctx.message)
         return;
     const { id, first_name, username } = ctx.from;
     try {

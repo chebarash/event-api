@@ -5,7 +5,12 @@ const eventSchema = new Schema<EventType>({
   title: { type: String, required: true },
   picture: { type: String, required: true },
   description: { type: String, required: true },
-  authors: [{ type: Schema.Types.ObjectId, ref: `users`, required: true }],
+  author: {
+    type: Schema.Types.ObjectId,
+    refPath: "authorModel",
+    required: true,
+  },
+  authorModel: { type: String, enum: [`users`, `clubs`], required: true },
   date: { type: Date, required: true },
   venue: { type: String, required: true },
   duration: { type: Number, required: true },
@@ -24,7 +29,7 @@ export const getEvents = (match = {}): Promise<Array<EventType>> => {
   date.setDate(date.getDate() - 1);
   return Events.find({ ...match, date: { $gte: date } })
     .sort({ date: 1 })
-    .populate(`authors`)
+    .populate(`author`)
     .lean()
     .exec();
 };

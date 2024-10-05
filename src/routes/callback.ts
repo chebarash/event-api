@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { MethodsType } from "../types/types";
-import temp from "../temp";
+import Users from "../models/users";
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } =
   process.env;
@@ -9,7 +9,7 @@ const callback: {
   [name in MethodsType]?: RequestHandler;
 } = {
   get: async (req, res) => {
-    const { code } = req.query;
+    const { code, state } = req.query;
 
     const response = await fetch(`https://oauth2.googleapis.com/token`, {
       method: `POST`,
@@ -29,11 +29,29 @@ const callback: {
     );
 
     if (token_info_response.status == 200) {
-      const tempId = (Math.random() + 1).toString(36).substring(7);
-      const { given_name, family_name, picture, email } =
-        await token_info_response.json();
-      temp[tempId] = { given_name, family_name, picture, email };
-      return res.redirect(`https://t.me/pueventbot?start=${tempId}`);
+      const {
+        given_name,
+        family_name,
+        picture,
+        email,
+      }: { [name: string]: string } = await token_info_response.json();
+      const { id, option }: { [name: string]: string } =
+        typeof state == `string` ? JSON.parse(state) : {};
+      await Users.updateOne(
+        { email },
+        {
+          name: [given_name, family_name]
+            .map((v) =>
+              v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase())
+            )
+            .join(` `),
+          picture,
+          email,
+          id,
+        },
+        { upsert: true }
+      );
+      return res.redirect(`https://t.me/pueventbot?start=${option}`);
     }
 
     res.status(token_info_response.status).json({ error: true });

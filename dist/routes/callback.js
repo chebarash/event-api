@@ -11,11 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-const temp_1 = __importDefault(require("../temp"));
+const users_1 = __importDefault(require("../models/users"));
 const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } = process.env;
 const callback = {
     get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const { code } = req.query;
+        const { code, state } = req.query;
         const response = yield fetch(`https://oauth2.googleapis.com/token`, {
             method: `POST`,
             body: JSON.stringify({
@@ -29,10 +29,17 @@ const callback = {
         const { id_token } = yield response.json();
         const token_info_response = yield fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
         if (token_info_response.status == 200) {
-            const tempId = (Math.random() + 1).toString(36).substring(7);
-            const { given_name, family_name, picture, email } = yield token_info_response.json();
-            temp_1.default[tempId] = { given_name, family_name, picture, email };
-            return res.redirect(`https://t.me/pueventbot?start=${tempId}`);
+            const { given_name, family_name, picture, email, } = yield token_info_response.json();
+            const { id, option } = typeof state == `string` ? JSON.parse(state) : {};
+            yield users_1.default.updateOne({ email }, {
+                name: [given_name, family_name]
+                    .map((v) => v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase()))
+                    .join(` `),
+                picture,
+                email,
+                id,
+            }, { upsert: true });
+            return res.redirect(`https://t.me/pueventbot?start=${option}`);
         }
         res.status(token_info_response.status).json({ error: true });
     }),

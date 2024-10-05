@@ -6,7 +6,12 @@ const eventSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     picture: { type: String, required: true },
     description: { type: String, required: true },
-    authors: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `users`, required: true }],
+    author: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        refPath: "authorModel",
+        required: true,
+    },
+    authorModel: { type: String, enum: [`users`, `clubs`], required: true },
     date: { type: Date, required: true },
     venue: { type: String, required: true },
     duration: { type: Number, required: true },
@@ -23,7 +28,7 @@ const getEvents = (match = {}) => {
     date.setDate(date.getDate() - 1);
     return Events.find(Object.assign(Object.assign({}, match), { date: { $gte: date } }))
         .sort({ date: 1 })
-        .populate(`authors`)
+        .populate(`author`)
         .lean()
         .exec();
 };

@@ -5,7 +5,7 @@ const { ADMIN_ID } = process.env;
 const adminId = parseInt(ADMIN_ID);
 
 const log = async (ctx: MyContext) => {
-  if (!ctx.from) return;
+  if (!ctx.from || !ctx.message) return;
   const { id, first_name, username } = ctx.from;
 
   try {

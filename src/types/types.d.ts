@@ -2,14 +2,17 @@ import { Document, ObjectId } from "mongoose";
 import { Context } from "telegraf";
 
 export type ClubType = {
+  _id: ObjectId;
   username: string;
   name: string;
   description: string;
   links: Array<{ url: string; text: string }>;
   cover: string;
+  coordinators: Array<UserType>;
 } & Document;
 
 export type RegistrationType = {
+  _id: ObjectId;
   user: UserType;
   event: EventType;
   date: Date;
@@ -18,23 +21,29 @@ export type RegistrationType = {
   comment?: string;
 } & Document;
 
+export type UserExtendedType = UserType & {
+  clubs: Array<ClubType>;
+};
+
 export type UserType = {
-  given_name: string;
-  family_name: string;
-  picture: string;
+  _id: ObjectId;
+  name: string;
+  picture?: string;
   email: string;
   id: number;
   organizer: boolean;
-  clubs: Array<string>;
+  member: Array<ClubType>;
 } & Document;
 
 export type ContentType = { type: `video` | `photo`; fileId: string };
 
 export type EventType = {
+  _id: ObjectId;
   title: string;
   picture: string;
   description: string;
-  authors: Array<UserType>;
+  author: UserType | ClubType;
+  authorModel: `users` | `clubs`;
   date: Date;
   venue: string;
   duration: number;
@@ -54,5 +63,5 @@ export type MethodsType =
   | `head`;
 
 export interface MyContext extends Context {
-  user: UserType;
+  user: UserExtendedType;
 }

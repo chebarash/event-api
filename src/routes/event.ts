@@ -1,10 +1,9 @@
 import { RequestHandler } from "express";
 import {
-  ContentType,
   EventType,
   MethodsType,
   RegistrationType,
-  UserType,
+  UserExtendedType,
 } from "../types/types";
 import Events, { getEvents } from "../models/events";
 import Registrations from "../models/registrations";
@@ -13,11 +12,28 @@ import bot from "../bot";
 const event: {
   [name in MethodsType]?: RequestHandler;
 } = {
-  get: async ({ user }, res) => {
-    const events: Array<EventType & { registration?: RegistrationType }> =
-      await getEvents();
+  get: async ({ user }: { user: UserExtendedType }, res) => {
+    const events: Array<
+      EventType & {
+        registration?: RegistrationType;
+        participants?: Array<RegistrationType>;
+      }
+    > = await getEvents();
 
     if (user) {
+      if (user.clubs && user.clubs.length) {
+        for (const i in events) {
+          const club = user.clubs.findIndex(
+            ({ _id }) => `${_id}` == `${events[i].author._id}`
+          );
+          if (club < 0 && `${events[i].author._id}` != `${user._id}`) continue;
+          events[i].participants = await Registrations.find({
+            event: events[i]._id,
+          })
+            .populate([`user`, `event`])
+            .exec();
+        }
+      }
       const date = new Date();
       date.setDate(date.getDate() - 1);
       const registrations = await Registrations.find({

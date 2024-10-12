@@ -41,6 +41,18 @@ const event = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user }, res) {
         const events = yield (0, events_1.getEvents)();
         if (user) {
+            if (user.clubs && user.clubs.length) {
+                for (const i in events) {
+                    const club = user.clubs.findIndex(({ _id }) => `${_id}` == `${events[i].author._id}`);
+                    if (club < 0 && `${events[i].author._id}` != `${user._id}`)
+                        continue;
+                    events[i].participants = yield registrations_1.default.find({
+                        event: events[i]._id,
+                    })
+                        .populate([`user`, `event`])
+                        .exec();
+                }
+            }
             const date = new Date();
             date.setDate(date.getDate() - 1);
             const registrations = yield registrations_1.default.find({

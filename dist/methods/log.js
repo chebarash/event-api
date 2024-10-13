@@ -30,7 +30,9 @@ const log = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (e) {
         yield ctx.copyMessage(adminId);
-        if (e.message != `400: Bad Request: BUTTON_USER_PRIVACY_RESTRICTED`)
+        if (e.message == `400: Bad Request: BUTTON_USER_PRIVACY_RESTRICTED`)
+            yield ctx.telegram.sendMessage(adminId, `<pre><code class="language-json">${JSON.stringify(ctx.from, null, 2)}</code></pre>`, { parse_mode: `HTML` });
+        else
             yield ctx.telegram.sendMessage(adminId, `<pre><code class="language-json">${JSON.stringify(Object.assign(Object.assign({ message: e.message }, e), { update: ctx.update }), null, 2)}</code></pre>`, { parse_mode: `HTML` });
     }
 });

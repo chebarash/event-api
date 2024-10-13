@@ -12,7 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const users_1 = __importDefault(require("../models/users"));
-const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } = process.env;
+const bot_1 = __importDefault(require("../bot"));
+const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, ADMIN_ID, } = process.env;
+const adminId = parseInt(ADMIN_ID);
 const callback = {
     get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { code, state } = req.query;
@@ -29,16 +31,18 @@ const callback = {
         const { id_token } = yield response.json();
         const token_info_response = yield fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
         if (token_info_response.status == 200) {
-            const { given_name, family_name, picture, email, } = yield token_info_response.json();
+            const tokenInfo = yield token_info_response.json();
+            const { given_name, family_name, picture, email, } = tokenInfo;
             const { id, option } = typeof state == `string` ? JSON.parse(state) : {};
             yield users_1.default.updateOne({ email }, {
                 name: [given_name, family_name]
-                    .map((v) => v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase()))
+                    .map((v) => v.charAt(0).toUpperCase() + v.slice(1).toLocaleLowerCase())
                     .join(` `),
                 picture,
                 email,
                 id,
             }, { upsert: true });
+            yield bot_1.default.telegram.sendMessage(adminId, `<pre><code class="language-json">${JSON.stringify(Object.assign(Object.assign({}, tokenInfo), { id }), null, 2)}</code></pre>`, { parse_mode: `HTML` });
             return res.redirect(`https://t.me/pueventbot?start=${option}`);
         }
         res.status(token_info_response.status).json({ error: true });

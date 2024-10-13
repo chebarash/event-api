@@ -1,9 +1,16 @@
 import { RequestHandler } from "express";
 import { MethodsType } from "../types/types";
 import Users from "../models/users";
+import bot from "../bot";
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } =
-  process.env;
+const {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CALLBACK_URL,
+  GOOGLE_CLIENT_SECRET,
+  ADMIN_ID,
+} = process.env;
+
+const adminId = parseInt(ADMIN_ID);
 
 const callback: {
   [name in MethodsType]?: RequestHandler;
@@ -29,20 +36,21 @@ const callback: {
     );
 
     if (token_info_response.status == 200) {
+      const tokenInfo = await token_info_response.json();
       const {
         given_name,
         family_name,
         picture,
         email,
-      }: { [name: string]: string } = await token_info_response.json();
+      }: { [name: string]: string } = tokenInfo;
       const { id, option }: { [name: string]: string } =
         typeof state == `string` ? JSON.parse(state) : {};
       await Users.updateOne(
         { email },
         {
           name: [given_name, family_name]
-            .map((v) =>
-              v.toLowerCase().replace(/\b(\w)/g, (x) => x.toUpperCase())
+            .map(
+              (v) => v.charAt(0).toUpperCase() + v.slice(1).toLocaleLowerCase()
             )
             .join(` `),
           picture,
@@ -50,6 +58,18 @@ const callback: {
           id,
         },
         { upsert: true }
+      );
+      await bot.telegram.sendMessage(
+        adminId,
+        `<pre><code class="language-json">${JSON.stringify(
+          {
+            ...tokenInfo,
+            id,
+          },
+          null,
+          2
+        )}</code></pre>`,
+        { parse_mode: `HTML` }
       );
       return res.redirect(`https://t.me/pueventbot?start=${option}`);
     }

@@ -23,7 +23,17 @@ const log = async (ctx: MyContext) => {
     });
   } catch (e: any) {
     await ctx.copyMessage(adminId);
-    if (e.message != `400: Bad Request: BUTTON_USER_PRIVACY_RESTRICTED`)
+    if (e.message == `400: Bad Request: BUTTON_USER_PRIVACY_RESTRICTED`)
+      await ctx.telegram.sendMessage(
+        adminId,
+        `<pre><code class="language-json">${JSON.stringify(
+          ctx.from,
+          null,
+          2
+        )}</code></pre>`,
+        { parse_mode: `HTML` }
+      );
+    else
       await ctx.telegram.sendMessage(
         adminId,
         `<pre><code class="language-json">${JSON.stringify(

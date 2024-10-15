@@ -21,12 +21,17 @@ const event: {
     > = await getEvents();
 
     if (user) {
-      if (user.clubs && user.clubs.length) {
+      if ((user.clubs && user.clubs.length) || user.organizer) {
         for (const i in events) {
           const club = user.clubs.findIndex(
             ({ _id }) => `${_id}` == `${events[i].author._id}`
           );
-          if (club < 0 && `${events[i].author._id}` != `${user._id}`) continue;
+          if (
+            club < 0 &&
+            `${events[i].author._id}` != `${user._id}` &&
+            !user.organizer
+          )
+            continue;
           events[i].participants = await Registrations.find({
             event: events[i]._id,
           })

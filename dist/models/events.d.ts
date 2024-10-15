@@ -10,6 +10,7 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     date: Date;
     venue: string;
     duration: number;
+    shares: number;
     content?: import("../types/types").ContentType;
     template?: string;
     button?: string;

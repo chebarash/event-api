@@ -40,6 +40,7 @@ const login_1 = __importDefault(require("./methods/login"));
 const start_1 = __importDefault(require("./methods/start"));
 const error_1 = __importDefault(require("./methods/error"));
 const inline_1 = __importDefault(require("./methods/inline"));
+const result_1 = __importDefault(require("./methods/result"));
 const users_1 = __importStar(require("./models/users"));
 const temp_1 = require("./methods/temp");
 const clubs_1 = __importDefault(require("./models/clubs"));
@@ -116,6 +117,7 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, error_1.default)(ctx, e);
     }
 }));
+bot.on(`chosen_inline_result`, result_1.default);
 bot.on(`inline_query`, inline_1.default);
 bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {

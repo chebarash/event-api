@@ -21,6 +21,7 @@ const eventSchema = new mongoose_1.Schema({
     },
     template: { type: String },
     button: { type: String },
+    shares: { type: Number, default: 0 },
 });
 const Events = (0, mongoose_1.model)(`events`, eventSchema);
 const getEvents = (match = {}) => {

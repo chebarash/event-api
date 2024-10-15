@@ -5,6 +5,7 @@ import login from "./methods/login";
 import start from "./methods/start";
 import error from "./methods/error";
 import inline from "./methods/inline";
+import result from "./methods/result";
 import Users, { getUser } from "./models/users";
 import { tempMethod } from "./methods/temp";
 import Clubs from "./models/clubs";
@@ -99,6 +100,7 @@ bot.start(async (ctx) => {
   }
 });
 
+bot.on(`chosen_inline_result`, result);
 bot.on(`inline_query`, inline);
 
 bot.use(async (ctx, next) => {

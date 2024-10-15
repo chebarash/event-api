@@ -39,11 +39,9 @@ const event: {
             .exec();
         }
       }
-      const date = new Date();
-      date.setDate(date.getDate() - 1);
+
       const registrations = await Registrations.find({
         user: user._id,
-        date: { $gte: date },
       })
         .populate([`user`, `event`])
         .exec();

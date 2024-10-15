@@ -55,11 +55,8 @@ const event = {
                         .exec();
                 }
             }
-            const date = new Date();
-            date.setDate(date.getDate() - 1);
             const registrations = yield registrations_1.default.find({
                 user: user._id,
-                date: { $gte: date },
             })
                 .populate([`user`, `event`])
                 .exec();

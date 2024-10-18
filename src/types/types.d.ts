@@ -9,6 +9,7 @@ export type ClubType = {
   links: Array<{ url: string; text: string }>;
   cover: string;
   coordinators: Array<UserType>;
+  hidden: boolean;
 } & Document;
 
 export type RegistrationType = {
@@ -51,6 +52,7 @@ export type EventType = {
   content?: ContentType;
   template?: string;
   button?: string;
+  private: boolean;
 } & Document;
 
 export type MethodsType =

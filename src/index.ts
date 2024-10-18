@@ -50,7 +50,7 @@ app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
 
 app.get(`/clubs`, async (req, res) => {
   try {
-    const clubs = await Clubs.find();
+    const clubs = await Clubs.find({ hidden: false });
 
     const clubList = await Promise.all(
       clubs.map(async (club) => {

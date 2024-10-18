@@ -21,6 +21,7 @@ const eventSchema = new Schema<EventType>({
   template: { type: String },
   button: { type: String },
   shares: { type: Number, default: 0 },
+  private: { type: Boolean, required: true, default: false },
 });
 
 const Events = model<EventType>(`events`, eventSchema);

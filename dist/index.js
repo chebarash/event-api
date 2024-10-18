@@ -64,7 +64,7 @@ app.use(express_1.default.json());
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
 app.get(`/clubs`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const clubs = yield clubs_1.default.find();
+        const clubs = yield clubs_1.default.find({ hidden: false });
         const clubList = yield Promise.all(clubs.map((club) => __awaiter(void 0, void 0, void 0, function* () {
             const membersCount = yield users_1.default.countDocuments({
                 member: club._id,

@@ -54,7 +54,7 @@ const getClub = async (ctx: MyContext, query: { [name: string]: any } = {}) => {
 };
 
 const getClubs = async (ctx: MyContext) => {
-  const clubs = await Clubs.find({});
+  const clubs = await Clubs.find({ hidden: false });
 
   const media = `AgACAgIAAxkBAAIqHmcIDx23OO0mps3c52_tAAEL1rXNxQAC2ekxGzp-QUgtKkxYQQ24CwEAAwIAA3cAAzYE`;
   const caption = `Clubs:`;

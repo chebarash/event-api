@@ -79,7 +79,7 @@ const getClub = (ctx_1, ...args_1) => __awaiter(void 0, [ctx_1, ...args_1], void
         });
 });
 const getClubs = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    const clubs = yield clubs_1.default.find({});
+    const clubs = yield clubs_1.default.find({ hidden: false });
     const media = `AgACAgIAAxkBAAIqHmcIDx23OO0mps3c52_tAAEL1rXNxQAC2ekxGzp-QUgtKkxYQQ24CwEAAwIAA3cAAzYE`;
     const caption = `Clubs:`;
     const reply_markup = {

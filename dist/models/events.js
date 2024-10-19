@@ -23,6 +23,7 @@ const eventSchema = new mongoose_1.Schema({
     button: { type: String },
     shares: { type: Number, default: 0 },
     private: { type: Boolean, required: true, default: false },
+    external: { type: String },
 });
 const Events = (0, mongoose_1.model)(`events`, eventSchema);
 const getEvents = (match = {}) => {

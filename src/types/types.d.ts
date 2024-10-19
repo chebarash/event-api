@@ -53,6 +53,7 @@ export type EventType = {
   template?: string;
   button?: string;
   private: boolean;
+  external?: string;
 } & Document;
 
 export type MethodsType =

@@ -18,9 +18,8 @@ const participate = {
             return res.status(500).json({ message: `User not found` });
         if (!_id)
             return res.status(500).json({ message: `_id not found` });
-        return res.json({
-            registration: yield registrations_1.default.findOneAndUpdate({ event: _id }, { participated: Date.now() }, { new: true }),
-        });
+        yield registrations_1.default.findOneAndUpdate({ event: _id }, { participated: Date.now() }, { new: true });
+        return res.json((yield registrations_1.default.find({ user: user._id })).map((r) => r.event));
     }),
 };
 module.exports = participate;

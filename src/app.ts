@@ -7,7 +7,7 @@ import event from "./routes/event";
 import registration from "./routes/registration";
 import user from "./routes/user";
 import photo from "./routes/photo";
-import participate from "./routes/participate";
+import participants from "./routes/participants";
 
 const appRouter = Router();
 
@@ -25,7 +25,7 @@ const routes: Array<
   [`/registration`, registration],
   [`/user`, user],
   [`/photo/:fileId`, photo],
-  [`/participate`, participate],
+  [`/participants`, participants],
 ];
 
 for (const [route, methods] of routes) {

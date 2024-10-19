@@ -35,39 +35,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const events_1 = __importStar(require("../models/events"));
-const registrations_1 = __importDefault(require("../models/registrations"));
 const bot_1 = __importDefault(require("../bot"));
 const event = {
-    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user }, res) {
-        const events = yield (0, events_1.getEvents)();
-        if (user) {
-            if ((user.clubs && user.clubs.length) || user.organizer) {
-                for (const i in events) {
-                    const club = user.clubs.findIndex(({ _id }) => `${_id}` == `${events[i].author._id}`);
-                    if (club < 0 &&
-                        `${events[i].author._id}` != `${user._id}` &&
-                        !user.organizer)
-                        continue;
-                    events[i].participants = yield registrations_1.default.find({
-                        event: events[i]._id,
-                    })
-                        .populate([`user`, `event`])
-                        .exec();
-                }
-            }
-            const registrations = yield registrations_1.default.find({
-                user: user._id,
-            })
-                .populate([`user`, `event`])
-                .exec();
-            if (registrations)
-                for (const registration of registrations) {
-                    const event = events.findIndex(({ _id }) => `${_id}` == `${registration.event._id}`);
-                    if (event > -1)
-                        events[event].registration = registration;
-                }
-        }
-        res.json(events);
+    get: (_, res) => __awaiter(void 0, void 0, void 0, function* () {
+        res.json(yield (0, events_1.getEvents)());
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, body }, res) {
         try {

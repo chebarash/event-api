@@ -18,7 +18,7 @@ const event_1 = __importDefault(require("./routes/event"));
 const registration_1 = __importDefault(require("./routes/registration"));
 const user_1 = __importDefault(require("./routes/user"));
 const photo_1 = __importDefault(require("./routes/photo"));
-const participate_1 = __importDefault(require("./routes/participate"));
+const participants_1 = __importDefault(require("./routes/participants"));
 const appRouter = (0, express_1.Router)();
 const routes = [
     [`/auth`, auth_1.default],
@@ -27,7 +27,7 @@ const routes = [
     [`/registration`, registration_1.default],
     [`/user`, user_1.default],
     [`/photo/:fileId`, photo_1.default],
-    [`/participate`, participate_1.default],
+    [`/participants`, participants_1.default],
 ];
 for (const [route, methods] of routes) {
     for (const method in methods) {

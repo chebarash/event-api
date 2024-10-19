@@ -12,21 +12,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const registrations_1 = __importDefault(require("../models/registrations"));
-const registration = {
-    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, query: { _id, registered } }, res) {
-        if (!user)
+const events_1 = __importDefault(require("../models/events"));
+const participants = {
+    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, query: { _id } }, res) {
+        var _b;
+        if (!_id)
+            return res.status(500).json({ message: `_id not found` });
+        if (!user || (!user.organizer && !((_b = user.clubs) === null || _b === void 0 ? void 0 : _b.length)))
             return res.json([]);
-        if (_id)
-            if (registered)
-                yield registrations_1.default.deleteOne({ user: user._id, event: _id });
-            else {
-                if (!(yield registrations_1.default.findOne({ user: user._id, event: _id })))
-                    yield new registrations_1.default({
-                        user: user._id,
-                        event: _id,
-                    }).save();
-            }
-        return res.json((yield registrations_1.default.find({ user: user._id })).map((r) => r.event));
+        const event = yield events_1.default.findOne({ _id });
+        if (!event)
+            return res.status(500).json({ message: `Event not found` });
+        if (`${event.author._id}` != `${user._id}` && !user.organizer)
+            return res.json([]);
+        return res.json((yield registrations_1.default.find({ event: _id }).populate(`user`)).map((r) => r.user));
     }),
 };
-module.exports = registration;
+module.exports = participants;

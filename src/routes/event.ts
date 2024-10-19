@@ -1,61 +1,13 @@
 import { RequestHandler } from "express";
-import {
-  EventType,
-  MethodsType,
-  RegistrationType,
-  UserExtendedType,
-} from "../types/types";
+import { MethodsType } from "../types/types";
 import Events, { getEvents } from "../models/events";
-import Registrations from "../models/registrations";
 import bot from "../bot";
 
 const event: {
   [name in MethodsType]?: RequestHandler;
 } = {
-  get: async ({ user }: { user: UserExtendedType }, res) => {
-    const events: Array<
-      EventType & {
-        registration?: RegistrationType;
-        participants?: Array<RegistrationType>;
-      }
-    > = await getEvents();
-
-    if (user) {
-      if ((user.clubs && user.clubs.length) || user.organizer) {
-        for (const i in events) {
-          const club = user.clubs.findIndex(
-            ({ _id }) => `${_id}` == `${events[i].author._id}`
-          );
-          if (
-            club < 0 &&
-            `${events[i].author._id}` != `${user._id}` &&
-            !user.organizer
-          )
-            continue;
-          events[i].participants = await Registrations.find({
-            event: events[i]._id,
-          })
-            .populate([`user`, `event`])
-            .exec();
-        }
-      }
-
-      const registrations = await Registrations.find({
-        user: user._id,
-      })
-        .populate([`user`, `event`])
-        .exec();
-
-      if (registrations)
-        for (const registration of registrations) {
-          const event = events.findIndex(
-            ({ _id }) => `${_id}` == `${registration.event._id}`
-          );
-          if (event > -1) events[event].registration = registration;
-        }
-    }
-
-    res.json(events);
+  get: async (_, res) => {
+    res.json(await getEvents());
   },
   post: async ({ user, body }, res) => {
     try {

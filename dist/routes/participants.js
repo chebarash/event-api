@@ -23,7 +23,9 @@ const participants = {
         const event = yield events_1.default.findOne({ _id });
         if (!event)
             return res.status(500).json({ message: `Event not found` });
-        if (`${event.author._id}` != `${user._id}` && !user.organizer)
+        if (`${event.author._id}` != `${user._id}` &&
+            !user.organizer &&
+            !user.clubs.some(({ _id }) => `${_id}` == `${event.author._id}`))
             return res.json([]);
         return res.json((yield registrations_1.default.find({ event: _id }).populate(`user`)).map((r) => r.user));
     }),

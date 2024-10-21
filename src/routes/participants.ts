@@ -11,7 +11,13 @@ const participants: {
     if (!user || (!user.organizer && !user.clubs?.length)) return res.json([]);
     const event = await Events.findOne({ _id });
     if (!event) return res.status(500).json({ message: `Event not found` });
-    if (`${event.author._id}` != `${user._id}` && !user.organizer)
+    if (
+      `${event.author._id}` != `${user._id}` &&
+      !user.organizer &&
+      !user.clubs.some(
+        ({ _id }: { _id: string }) => `${_id}` == `${event.author._id}`
+      )
+    )
       return res.json([]);
     return res.json(
       (await Registrations.find({ event: _id }).populate(`user`)).map(

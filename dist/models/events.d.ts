@@ -11,12 +11,14 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     venue: string;
     duration: number;
     shares: number;
+    private: boolean;
+    participants: Array<import("../types/types").UserType>;
+    spots?: number;
+    deadline?: Date;
+    external?: string;
     content?: import("../types/types").ContentType;
     template?: string;
     button?: string;
-    private: boolean;
-    external?: string;
-    participants: Array<import("../types/types").UserType>;
 } & import("mongoose").Document<unknown, any, any> & Required<{
     _id: Schema.Types.ObjectId;
 }>, any>;

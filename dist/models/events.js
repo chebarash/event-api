@@ -25,6 +25,8 @@ const eventSchema = new mongoose_1.Schema({
     private: { type: Boolean, required: true, default: false },
     external: { type: String },
     participants: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `users`, default: [] }],
+    spots: { type: Number },
+    deadline: { type: Date },
 });
 const Events = (0, mongoose_1.model)(`events`, eventSchema);
 const getEvents = (match = {}) => {

@@ -39,12 +39,14 @@ export type EventType = {
   venue: string;
   duration: number;
   shares: number;
+  private: boolean;
+  participants: Array<UserType>;
+  spots?: number;
+  deadline?: Date;
+  external?: string;
   content?: ContentType;
   template?: string;
   button?: string;
-  private: boolean;
-  external?: string;
-  participants: Array<UserType>;
 } & Document;
 
 export type MethodsType =

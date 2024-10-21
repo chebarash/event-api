@@ -12,16 +12,6 @@ export type ClubType = {
   hidden: boolean;
 } & Document;
 
-export type RegistrationType = {
-  _id: ObjectId;
-  user: UserType;
-  event: EventType;
-  date: Date;
-  participated?: Date;
-  rate?: number;
-  comment?: string;
-} & Document;
-
 export type UserExtendedType = UserType & {
   clubs: Array<ClubType>;
 };
@@ -54,6 +44,7 @@ export type EventType = {
   button?: string;
   private: boolean;
   external?: string;
+  participants: Array<UserType>;
 } & Document;
 
 export type MethodsType =

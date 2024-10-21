@@ -11,22 +11,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-const registrations_1 = __importDefault(require("../models/registrations"));
+const events_1 = __importDefault(require("../models/events"));
 const registration = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, query: { _id, registered } }, res) {
         if (!user)
             return res.json([]);
         if (_id)
-            if (registered)
-                yield registrations_1.default.deleteOne({ user: user._id, event: _id });
-            else {
-                if (!(yield registrations_1.default.findOne({ user: user._id, event: _id })))
-                    yield new registrations_1.default({
-                        user: user._id,
-                        event: _id,
-                    }).save();
-            }
-        return res.json((yield registrations_1.default.find({ user: user._id })).map((r) => r.event));
+            yield events_1.default.updateOne({ _id }, registered
+                ? { $pull: { participants: user._id } }
+                : { $push: { participants: user._id } });
+        return res.json(yield events_1.default.findOne({ _id }).populate(`author`).exec());
     }),
 };
 module.exports = registration;

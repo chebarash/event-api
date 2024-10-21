@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { MethodsType } from "../types/types";
-import Registrations from "../models/registrations";
+import Events from "../models/events";
 
 const registration: {
   [name in MethodsType]?: RequestHandler;
@@ -8,18 +8,13 @@ const registration: {
   get: async ({ user, query: { _id, registered } }, res) => {
     if (!user) return res.json([]);
     if (_id)
-      if (registered)
-        await Registrations.deleteOne({ user: user._id, event: _id });
-      else {
-        if (!(await Registrations.findOne({ user: user._id, event: _id })))
-          await new Registrations({
-            user: user._id,
-            event: _id,
-          }).save();
-      }
-    return res.json(
-      (await Registrations.find({ user: user._id })).map((r) => r.event)
-    );
+      await Events.updateOne(
+        { _id },
+        registered
+          ? { $pull: { participants: user._id } }
+          : { $push: { participants: user._id } }
+      );
+    return res.json(await Events.findOne({ _id }).populate(`author`).exec());
   },
 };
 

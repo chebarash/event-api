@@ -23,6 +23,7 @@ const eventSchema = new Schema<EventType>({
   shares: { type: Number, default: 0 },
   private: { type: Boolean, required: true, default: false },
   external: { type: String },
+  participants: [{ type: Schema.Types.ObjectId, ref: `users`, default: [] }],
 });
 
 const Events = model<EventType>(`events`, eventSchema);

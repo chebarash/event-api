@@ -16,6 +16,7 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     button?: string;
     private: boolean;
     external?: string;
+    participants: Array<import("../types/types").UserType>;
 } & import("mongoose").Document<unknown, any, any> & Required<{
     _id: Schema.Types.ObjectId;
 }>, any>;

@@ -41,6 +41,7 @@ export type EventType = {
   shares: number;
   private: boolean;
   participants: Array<UserType>;
+  hashtags: Array<string>;
   spots?: number;
   deadline?: Date;
   external?: string;

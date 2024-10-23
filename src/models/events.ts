@@ -26,6 +26,7 @@ const eventSchema = new Schema<EventType>({
   participants: [{ type: Schema.Types.ObjectId, ref: `users`, default: [] }],
   spots: { type: Number },
   deadline: { type: Date },
+  hashtags: [{ type: String, default: [] }],
 });
 
 const Events = model<EventType>(`events`, eventSchema);

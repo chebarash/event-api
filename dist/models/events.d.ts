@@ -13,6 +13,7 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     shares: number;
     private: boolean;
     participants: Array<import("../types/types").UserType>;
+    hashtags: Array<string>;
     spots?: number;
     deadline?: Date;
     external?: string;

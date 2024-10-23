@@ -10,7 +10,6 @@ declare const Clubs: import("mongoose").Model<ClubType, {}, {}, {}, import("mong
         text: string;
     }>;
     cover: string;
-    coordinators: Array<import("../types/types").UserType>;
     hidden: boolean;
 } & import("mongoose").Document<unknown, any, any> & Required<{
     _id: Schema.Types.ObjectId;

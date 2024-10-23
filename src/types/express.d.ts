@@ -1,5 +1,5 @@
 declare namespace Express {
   export interface Request {
-    user: UserExtendedType;
+    user: UserType;
   }
 }

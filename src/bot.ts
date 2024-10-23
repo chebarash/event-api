@@ -1,12 +1,12 @@
 import { Telegraf } from "telegraf";
-import { MyContext, UserExtendedType } from "./types/types";
+import { MyContext } from "./types/types";
 import log from "./methods/log";
 import login from "./methods/login";
 import start from "./methods/start";
 import error from "./methods/error";
 import inline from "./methods/inline";
 import result from "./methods/result";
-import Users, { getUser } from "./models/users";
+import Users from "./models/users";
 import { tempMethod } from "./methods/temp";
 import Clubs from "./models/clubs";
 import { InlineKeyboardMarkup } from "telegraf/typings/core/types/typegram";
@@ -84,8 +84,9 @@ bot.start(async (ctx) => {
     const { id } = ctx.from;
     const option = ctx.message.text.split(` `)[1];
 
-    ctx.user = (await getUser({ id })) as UserExtendedType;
-    if (!ctx.user) return await login(ctx, option);
+    const res = await Users.findOne({ id });
+    if (!res) return await login(ctx, option);
+    ctx.user = res;
 
     if (option === `clubs`) return await getClubs(ctx);
 
@@ -108,8 +109,9 @@ bot.use(async (ctx, next) => {
     if (ctx.from) {
       const { id } = ctx.from;
 
-      ctx.user = (await getUser({ id })) as UserExtendedType;
-      if (!ctx.user) return await login(ctx);
+      const res = await Users.findOne({ id });
+      if (!res) return await login(ctx);
+      ctx.user = res;
     }
 
     await next();
@@ -124,13 +126,8 @@ bot.action(/^clb/g, async (ctx) => {
   const club = await Clubs.findOne({ _id });
   if (!club) return await ctx.answerCbQuery(`Club not found.`);
   const includes = ctx.user.member.map((_id) => `${_id}`).includes(_id);
-  await Users.updateOne(
-    { id: ctx.user.id },
-    {
-      member: includes
-        ? ctx.user.member.filter((id) => `${id}` != _id)
-        : [_id, ...ctx.user.member],
-    }
+  await ctx.user.updateOne(
+    includes ? { $pull: { member: _id } } : { $push: { member: _id } }
   );
   await ctx.answerCbQuery(
     includes ? `You left the club.` : `You joined the club.`

@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -38,10 +15,11 @@ require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const mongoose_1 = require("mongoose");
-const users_1 = __importStar(require("./models/users"));
+const users_1 = __importDefault(require("./models/users"));
 const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
 const clubs_1 = __importDefault(require("./models/clubs"));
+const axios_1 = __importDefault(require("axios"));
 const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, } = process.env;
 if ([
     TOKEN,
@@ -81,8 +59,23 @@ app.get(`/clubs`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { authorization } = req.headers;
-        if (authorization)
-            req.user = yield (0, users_1.getUser)({ id: authorization });
+        if (authorization) {
+            const user = yield users_1.default.findOne({ id: authorization }).populate(`clubs`);
+            if (user) {
+                if (user.expires < new Date()) {
+                    const { data: { access_token, expires_in }, } = yield axios_1.default.post("https://oauth2.googleapis.com/token", {
+                        client_id: GOOGLE_CLIENT_ID,
+                        client_secret: GOOGLE_CLIENT_SECRET,
+                        refresh_token: user.refreshToken,
+                        grant_type: "refresh_token",
+                    });
+                    user.accessToken = access_token;
+                    user.expires = new Date(Date.now() + expires_in * 1000);
+                    yield user.save();
+                }
+                req.user = user;
+            }
+        }
         return next();
     }
     catch (e) {

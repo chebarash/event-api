@@ -15,7 +15,7 @@ const auth: {
           id: req.query.id,
           option: req.query.option,
         })
-      )}&scope=openid%20email%20profile`
+      )}&scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar.app.created`
     ),
 };
 

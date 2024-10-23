@@ -3,12 +3,12 @@ import express from "express";
 import cors from "cors";
 import { connect } from "mongoose";
 
-import Users, { getUser } from "./models/users";
+import Users from "./models/users";
 
 import appRouter from "./app";
 import bot from "./bot";
 import Clubs from "./models/clubs";
-import Events from "./models/events";
+import axios from "axios";
 
 const {
   TOKEN,
@@ -71,7 +71,28 @@ app.get(`/clubs`, async (req, res) => {
 app.use(async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    if (authorization) req.user = await getUser({ id: authorization });
+    if (authorization) {
+      const user = await Users.findOne({ id: authorization }).populate(`clubs`);
+      if (user) {
+        if (user.expires < new Date()) {
+          const {
+            data: { access_token, expires_in },
+          } = await axios.post<{
+            access_token: string;
+            expires_in: number;
+          }>("https://oauth2.googleapis.com/token", {
+            client_id: GOOGLE_CLIENT_ID,
+            client_secret: GOOGLE_CLIENT_SECRET,
+            refresh_token: user.refreshToken,
+            grant_type: "refresh_token",
+          });
+          user.accessToken = access_token;
+          user.expires = new Date(Date.now() + expires_in * 1000);
+          await user.save();
+        }
+        req.user = user;
+      }
+    }
     return next();
   } catch (e) {
     console.log(e);

@@ -7,7 +7,6 @@ const clubsSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
     links: { type: [{ url: String, text: String }], required: true, default: [] },
     cover: { type: String, required: true },
-    coordinators: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `users` }],
     hidden: { type: Boolean, required: true, default: false },
 });
 const Clubs = (0, mongoose_1.model)(`clubs`, clubsSchema);

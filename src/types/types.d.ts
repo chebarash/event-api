@@ -8,13 +8,8 @@ export type ClubType = {
   description: string;
   links: Array<{ url: string; text: string }>;
   cover: string;
-  coordinators: Array<UserType>;
   hidden: boolean;
 } & Document;
-
-export type UserExtendedType = UserType & {
-  clubs: Array<ClubType>;
-};
 
 export type UserType = {
   _id: ObjectId;
@@ -24,6 +19,11 @@ export type UserType = {
   id: number;
   organizer: boolean;
   member: Array<ClubType>;
+  accessToken: string;
+  refreshToken: string;
+  expires: Date;
+  calendarId: string;
+  clubs: Array<ClubType>;
 } & Document;
 
 export type ContentType = { type: `video` | `photo`; fileId: string };
@@ -42,6 +42,8 @@ export type EventType = {
   private: boolean;
   participants: Array<UserType>;
   hashtags: Array<string>;
+  eventId: string;
+  calendarId: string;
   spots?: number;
   deadline?: Date;
   external?: string;
@@ -61,5 +63,5 @@ export type MethodsType =
   | `head`;
 
 export interface MyContext extends Context {
-  user: UserExtendedType;
+  user: UserType;
 }

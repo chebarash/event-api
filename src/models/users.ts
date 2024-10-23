@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
-import { UserExtendedType, UserType } from "../types/types";
-import Clubs from "./clubs";
+import { UserType } from "../types/types";
 
 const usersSchema = new Schema<UserType>({
   name: { type: String, required: true },
@@ -9,18 +8,13 @@ const usersSchema = new Schema<UserType>({
   id: { type: Number, required: true, unique: true },
   organizer: { type: Boolean, default: false },
   member: [{ type: Schema.Types.ObjectId, ref: `clubs` }],
+  accessToken: { type: String, required: true },
+  refreshToken: { type: String, required: true },
+  expires: { type: Date, required: true },
+  calendarId: { type: String, required: true },
+  clubs: [{ type: Schema.Types.ObjectId, ref: `clubs`, default: [] }],
 });
 
 const Users = model<UserType>(`users`, usersSchema);
-
-export const getUser = async (match = {}): Promise<UserExtendedType | null> => {
-  const user = (await Users.findOne(match).lean()) as UserExtendedType;
-
-  if (!user) return null;
-
-  user.clubs = await Clubs.find({ coordinators: user._id }).lean();
-
-  return user;
-};
 
 export default Users;

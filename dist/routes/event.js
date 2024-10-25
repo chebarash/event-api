@@ -41,13 +41,13 @@ const event = {
     get: (_, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.json(yield (0, events_1.getEvents)());
     }),
-    post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, body }, res) {
+    post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body }, res) {
         try {
             if (!(user === null || user === void 0 ? void 0 : user.organizer) && !(user === null || user === void 0 ? void 0 : user.clubs.length))
                 return res.status(500).json({ message: `You are not organizer` });
             const startTime = new Date(body.date);
             const endTime = new Date(startTime.getTime() + body.duration);
-            const { data: { id }, } = yield axios_1.default.post(`https://www.googleapis.com/calendar/v3/calendars/${user.calendarId}/events`, {
+            const { data: { id }, } = yield axios_1.default.post(`https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events`, {
                 summary: body.title,
                 location: body.venue,
                 description: body.description,
@@ -58,14 +58,15 @@ const event = {
                     dateTime: endTime.toISOString(),
                 },
                 attendees: [],
+                guestsCanInviteOthers: false,
+                guestsCanSeeOtherGuests: false,
             }, {
                 headers: {
-                    Authorization: `Bearer ${user.accessToken}`,
+                    Authorization: `Bearer ${admin.accessToken}`,
                     "Content-Type": "application/json",
                 },
             });
             body.eventId = id;
-            body.calendarId = user.calendarId;
             const event = yield (yield new events_1.default(body).save()).populate(`author`);
             yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}`, {
                 reply_markup: {

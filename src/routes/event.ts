@@ -10,7 +10,7 @@ const event: {
   get: async (_, res) => {
     res.json(await getEvents());
   },
-  post: async ({ user, body }, res) => {
+  post: async ({ user, admin, body }, res) => {
     try {
       if (!user?.organizer && !user?.clubs.length)
         return res.status(500).json({ message: `You are not organizer` });
@@ -19,7 +19,7 @@ const event: {
       const {
         data: { id },
       } = await axios.post<{ id: string }>(
-        `https://www.googleapis.com/calendar/v3/calendars/${user.calendarId}/events`,
+        `https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events`,
         {
           summary: body.title,
           location: body.venue,
@@ -31,16 +31,17 @@ const event: {
             dateTime: endTime.toISOString(),
           },
           attendees: [],
+          guestsCanInviteOthers: false,
+          guestsCanSeeOtherGuests: false,
         },
         {
           headers: {
-            Authorization: `Bearer ${user.accessToken}`,
+            Authorization: `Bearer ${admin.accessToken}`,
             "Content-Type": "application/json",
           },
         }
       );
       body.eventId = id;
-      body.calendarId = user.calendarId;
       const event = await (await new Events(body).save()).populate(`author`);
       await bot.telegram.sendMessage(
         process.env.ADMIN_ID,

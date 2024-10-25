@@ -9,6 +9,7 @@ import appRouter from "./app";
 import bot from "./bot";
 import Clubs from "./models/clubs";
 import axios from "axios";
+import Admins from "./models/admin";
 
 const {
   TOKEN,
@@ -70,29 +71,32 @@ app.get(`/clubs`, async (req, res) => {
 
 app.use(async (req, res, next) => {
   try {
+    const admin = await Admins.findOne();
+    if (!admin) return res.status(500).json({ message: `Admin not found` });
+    if (admin.expires < new Date()) {
+      const {
+        data: { access_token, expires_in },
+      } = await axios.post<{
+        access_token: string;
+        expires_in: number;
+      }>("https://oauth2.googleapis.com/token", {
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        refresh_token: admin.refreshToken,
+        grant_type: "refresh_token",
+      });
+      admin.accessToken = access_token;
+      admin.expires = new Date(Date.now() + expires_in * 1000);
+      await admin.save();
+    }
+    req.admin = admin;
+
     const { authorization } = req.headers;
     if (authorization) {
       const user = await Users.findOne({ id: authorization }).populate(`clubs`);
-      if (user) {
-        if (user.expires < new Date()) {
-          const {
-            data: { access_token, expires_in },
-          } = await axios.post<{
-            access_token: string;
-            expires_in: number;
-          }>("https://oauth2.googleapis.com/token", {
-            client_id: GOOGLE_CLIENT_ID,
-            client_secret: GOOGLE_CLIENT_SECRET,
-            refresh_token: user.refreshToken,
-            grant_type: "refresh_token",
-          });
-          user.accessToken = access_token;
-          user.expires = new Date(Date.now() + expires_in * 1000);
-          await user.save();
-        }
-        req.user = user;
-      }
+      if (user) req.user = user;
     }
+
     return next();
   } catch (e) {
     console.log(e);

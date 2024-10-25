@@ -1,6 +1,13 @@
 import { Document, ObjectId } from "mongoose";
 import { Context } from "telegraf";
 
+export type AdminType = {
+  accessToken: string;
+  refreshToken: string;
+  expires: Date;
+  calendarId: string;
+} & Document;
+
 export type ClubType = {
   _id: ObjectId;
   username: string;
@@ -19,10 +26,6 @@ export type UserType = {
   id: number;
   organizer: boolean;
   member: Array<ClubType>;
-  accessToken: string;
-  refreshToken: string;
-  expires: Date;
-  calendarId: string;
   clubs: Array<ClubType>;
 } & Document;
 
@@ -43,7 +46,6 @@ export type EventType = {
   participants: Array<UserType>;
   hashtags: Array<string>;
   eventId: string;
-  calendarId: string;
   spots?: number;
   deadline?: Date;
   external?: string;

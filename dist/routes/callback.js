@@ -17,7 +17,7 @@ const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } = process.
 const callback = {
     get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { code, state } = req.query;
-        const { data: { id_token, access_token, refresh_token, expires_in }, } = yield axios_1.default.post(`https://oauth2.googleapis.com/token`, {
+        const { data: { id_token }, } = yield axios_1.default.post(`https://oauth2.googleapis.com/token`, {
             code,
             client_id: GOOGLE_CLIENT_ID,
             client_secret: GOOGLE_CLIENT_SECRET,
@@ -25,16 +25,6 @@ const callback = {
             grant_type: `authorization_code`,
         });
         const { data: { email, picture, given_name, family_name }, } = yield axios_1.default.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
-        const { data: { id: calendarId }, } = yield axios_1.default.post("https://www.googleapis.com/calendar/v3/calendars", {
-            summary: "Event",
-            description: "Post events, register and be part of the university community.",
-            timeZone: "Asia/Tashkent",
-        }, {
-            headers: {
-                Authorization: `Bearer ${access_token}`,
-                "Content-Type": "application/json",
-            },
-        });
         const { id, option } = typeof state == `string` ? JSON.parse(state) : {};
         yield users_1.default.updateOne({ email }, {
             name: [given_name, family_name]
@@ -43,10 +33,6 @@ const callback = {
             picture,
             email,
             id,
-            accessToken: access_token,
-            refreshToken: refresh_token,
-            calendarId,
-            expires: new Date(Date.now() + expires_in * 1000),
         }, { upsert: true });
         return res.redirect(`https://t.me/pueventbot?start=${option}`);
     }),

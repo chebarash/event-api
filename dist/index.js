@@ -20,6 +20,7 @@ const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
 const clubs_1 = __importDefault(require("./models/clubs"));
 const axios_1 = __importDefault(require("axios"));
+const admin_1 = __importDefault(require("./models/admin"));
 const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, } = process.env;
 if ([
     TOKEN,
@@ -58,23 +59,26 @@ app.get(`/clubs`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const admin = yield admin_1.default.findOne();
+        if (!admin)
+            return res.status(500).json({ message: `Admin not found` });
+        if (admin.expires < new Date()) {
+            const { data: { access_token, expires_in }, } = yield axios_1.default.post("https://oauth2.googleapis.com/token", {
+                client_id: GOOGLE_CLIENT_ID,
+                client_secret: GOOGLE_CLIENT_SECRET,
+                refresh_token: admin.refreshToken,
+                grant_type: "refresh_token",
+            });
+            admin.accessToken = access_token;
+            admin.expires = new Date(Date.now() + expires_in * 1000);
+            yield admin.save();
+        }
+        req.admin = admin;
         const { authorization } = req.headers;
         if (authorization) {
             const user = yield users_1.default.findOne({ id: authorization }).populate(`clubs`);
-            if (user) {
-                if (user.expires < new Date()) {
-                    const { data: { access_token, expires_in }, } = yield axios_1.default.post("https://oauth2.googleapis.com/token", {
-                        client_id: GOOGLE_CLIENT_ID,
-                        client_secret: GOOGLE_CLIENT_SECRET,
-                        refresh_token: user.refreshToken,
-                        grant_type: "refresh_token",
-                    });
-                    user.accessToken = access_token;
-                    user.expires = new Date(Date.now() + expires_in * 1000);
-                    yield user.save();
-                }
+            if (user)
                 req.user = user;
-            }
         }
         return next();
     }

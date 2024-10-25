@@ -13,19 +13,17 @@ const callback: {
     const { code, state } = req.query;
 
     const {
-      data: { id_token, access_token, refresh_token, expires_in },
-    } = await axios.post<{
-      id_token: string;
-      access_token: string;
-      refresh_token: string;
-      expires_in: number;
-    }>(`https://oauth2.googleapis.com/token`, {
-      code,
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      redirect_uri: GOOGLE_CALLBACK_URL,
-      grant_type: `authorization_code`,
-    });
+      data: { id_token },
+    } = await axios.post<{ id_token: string }>(
+      `https://oauth2.googleapis.com/token`,
+      {
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: GOOGLE_CALLBACK_URL,
+        grant_type: `authorization_code`,
+      }
+    );
 
     const {
       data: { email, picture, given_name, family_name },
@@ -35,24 +33,6 @@ const callback: {
       given_name: string;
       family_name: string;
     }>(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
-
-    const {
-      data: { id: calendarId },
-    } = await axios.post<{ id: string }>(
-      "https://www.googleapis.com/calendar/v3/calendars",
-      {
-        summary: "Event",
-        description:
-          "Post events, register and be part of the university community.",
-        timeZone: "Asia/Tashkent",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
 
     const { id, option }: { [name: string]: string } =
       typeof state == `string` ? JSON.parse(state) : {};
@@ -67,10 +47,6 @@ const callback: {
         picture,
         email,
         id,
-        accessToken: access_token,
-        refreshToken: refresh_token,
-        calendarId,
-        expires: new Date(Date.now() + expires_in * 1000),
       },
       { upsert: true }
     );

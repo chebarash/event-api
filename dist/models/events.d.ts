@@ -15,7 +15,6 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     participants: Array<import("../types/types").UserType>;
     hashtags: Array<string>;
     eventId: string;
-    calendarId: string;
     spots?: number;
     deadline?: Date;
     external?: string;

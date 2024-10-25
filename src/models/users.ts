@@ -8,10 +8,6 @@ const usersSchema = new Schema<UserType>({
   id: { type: Number, required: true, unique: true },
   organizer: { type: Boolean, default: false },
   member: [{ type: Schema.Types.ObjectId, ref: `clubs` }],
-  accessToken: { type: String, required: true },
-  refreshToken: { type: String, required: true },
-  expires: { type: Date, required: true },
-  calendarId: { type: String, required: true },
   clubs: [{ type: Schema.Types.ObjectId, ref: `clubs`, default: [] }],
 });
 

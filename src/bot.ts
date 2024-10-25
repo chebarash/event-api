@@ -127,7 +127,7 @@ bot.action(/^clb/g, async (ctx) => {
   if (!club) return await ctx.answerCbQuery(`Club not found.`);
   const includes = ctx.user.member.map((_id) => `${_id}`).includes(_id);
   await ctx.user.updateOne(
-    includes ? { $pull: { member: _id } } : { $push: { member: _id } }
+    includes ? { $pull: { member: _id } } : { $addToSet: { member: _id } }
   );
   await ctx.answerCbQuery(
     includes ? `You left the club.` : `You joined the club.`

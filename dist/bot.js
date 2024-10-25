@@ -119,7 +119,7 @@ bot.action(/^clb/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     if (!club)
         return yield ctx.answerCbQuery(`Club not found.`);
     const includes = ctx.user.member.map((_id) => `${_id}`).includes(_id);
-    yield ctx.user.updateOne(includes ? { $pull: { member: _id } } : { $push: { member: _id } });
+    yield ctx.user.updateOne(includes ? { $pull: { member: _id } } : { $addToSet: { member: _id } });
     yield ctx.answerCbQuery(includes ? `You left the club.` : `You joined the club.`);
     yield ctx.editMessageReplyMarkup({
         inline_keyboard: [

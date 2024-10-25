@@ -23,7 +23,6 @@ const eventSchema = new Schema<EventType>({
   shares: { type: Number, default: 0 },
   private: { type: Boolean, required: true, default: false },
   eventId: { type: String, required: true },
-  calendarId: { type: String, required: true },
   external: { type: String },
   participants: [{ type: Schema.Types.ObjectId, ref: `users`, default: [] }],
   spots: { type: Number },

@@ -8,43 +8,47 @@ const registration: {
 } = {
   get: async ({ user, admin, query: { _id, registered } }, res) => {
     if (!user) return res.json([]);
-    if (_id) {
-      const event = await Events.findOneAndUpdate(
-        { _id },
-        registered
-          ? { $pull: { participants: user._id } }
-          : { $addToSet: { participants: user._id } },
-        { new: true, useFindAndModify: false }
-      ).populate(`participants`);
-      if (event?.eventId) {
-        const startTime = new Date(event.date);
-        const endTime = new Date(startTime.getTime() + (event.duration || 0));
-        await axios.put<{ id: string }>(
-          `https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${event.eventId}`,
-          {
-            summary: event.title,
-            location: event.venue,
-            description: event.description,
-            start: {
-              dateTime: startTime.toISOString(),
-            },
-            end: {
-              dateTime: endTime.toISOString(),
-            },
-            attendees: event.participants.map(({ email }) => ({ email })),
-            guestsCanInviteOthers: false,
-            guestsCanSeeOtherGuests: false,
+    if (!_id) return res.json([]);
+    const event = await Events.findOneAndUpdate(
+      { _id },
+      registered
+        ? { $pull: { participants: user._id } }
+        : { $addToSet: { participants: user._id } },
+      { new: true, useFindAndModify: false }
+    )
+      .populate([`author`, `participants`])
+      .exec();
+    res.json({
+      ...event?.toObject(),
+      participants: event?.populated(`participants`),
+    });
+    if (event?.eventId) {
+      const startTime = new Date(event.date);
+      const endTime = new Date(startTime.getTime() + (event.duration || 0));
+      await axios.put<{ id: string }>(
+        `https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${event.eventId}`,
+        {
+          summary: event.title,
+          location: event.venue,
+          description: event.description,
+          start: {
+            dateTime: startTime.toISOString(),
           },
-          {
-            headers: {
-              Authorization: `Bearer ${admin.accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      }
+          end: {
+            dateTime: endTime.toISOString(),
+          },
+          attendees: event.participants.map(({ email }) => ({ email })),
+          guestsCanInviteOthers: false,
+          guestsCanSeeOtherGuests: false,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${admin.accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
-    return res.json(await Events.findOne({ _id }).populate(`author`).exec());
   },
 };
 

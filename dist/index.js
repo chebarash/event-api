@@ -21,6 +21,7 @@ const bot_1 = __importDefault(require("./bot"));
 const clubs_1 = __importDefault(require("./models/clubs"));
 const axios_1 = __importDefault(require("axios"));
 const admin_1 = __importDefault(require("./models/admin"));
+const events_1 = __importDefault(require("./models/events"));
 const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, } = process.env;
 if ([
     TOKEN,
@@ -40,6 +41,12 @@ const app = (0, express_1.default)();
 const port = PORT || 3000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+app.get(`/`, (_, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const users = yield users_1.default.countDocuments();
+    const clubs = yield clubs_1.default.countDocuments({ hidden: false });
+    const events = yield events_1.default.countDocuments();
+    res.json({ users, clubs, events });
+}));
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
 app.get(`/clubs`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

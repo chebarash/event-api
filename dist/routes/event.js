@@ -57,6 +57,10 @@ const event = {
                 end: {
                     dateTime: endTime.toISOString(),
                 },
+                reminders: {
+                    useDefault: false,
+                    overrides: [{ method: "popup", minutes: 30 }],
+                },
                 attendees: [],
                 guestsCanInviteOthers: false,
                 guestsCanSeeOtherGuests: false,

@@ -37,6 +37,10 @@ const registration: {
           end: {
             dateTime: endTime.toISOString(),
           },
+          reminders: {
+            useDefault: false,
+            overrides: [{ method: "popup", minutes: 30 }],
+          },
           attendees: event.participants.map(({ email }) => ({ email })),
           guestsCanInviteOthers: false,
           guestsCanSeeOtherGuests: false,

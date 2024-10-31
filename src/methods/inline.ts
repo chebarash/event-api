@@ -4,7 +4,7 @@ import {
   InlineQueryResult,
   Update,
 } from "telegraf/typings/core/types/typegram";
-import { getEvents } from "../models/events";
+import Events from "../models/events";
 
 function truncateHtml(html: string, length: number) {
   const pattern = /<([a-zA-Z0-9\-]+)(\s*[^>]*)?>([\s\S]*?)<\/\1>/g;
@@ -53,9 +53,17 @@ const inline = async (
   ctx: NarrowedContext<MyContext, Update.InlineQueryUpdate>
 ) => {
   const offset = parseInt(ctx.inlineQuery.offset) || 0;
-  const data = await getEvents({
+
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  const data = await Events.find({
     title: { $regex: ctx.inlineQuery.query, $options: `i` },
-  });
+    date: { $gte: date },
+  })
+    .sort({ date: 1 })
+    .populate(`author`)
+    .lean()
+    .exec();
 
   let results = data
     .slice(offset, offset + 10)

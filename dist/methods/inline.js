@@ -8,7 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const events_1 = require("../models/events");
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+const events_1 = __importDefault(require("../models/events"));
 function truncateHtml(html, length) {
     const pattern = /<([a-zA-Z0-9\-]+)(\s*[^>]*)?>([\s\S]*?)<\/\1>/g;
     function truncateNode(node) {
@@ -41,9 +44,16 @@ const loadTemplate = (template = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venu
 };
 const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const offset = parseInt(ctx.inlineQuery.offset) || 0;
-    const data = yield (0, events_1.getEvents)({
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    const data = yield events_1.default.find({
         title: { $regex: ctx.inlineQuery.query, $options: `i` },
-    });
+        date: { $gte: date },
+    })
+        .sort({ date: 1 })
+        .populate(`author`)
+        .lean()
+        .exec();
     let results = data
         .slice(offset, offset + 10)
         .map(({ _id, title, picture, description, date, venue, duration, author, template, content, button, }) => {

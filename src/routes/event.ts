@@ -1,14 +1,23 @@
 import { RequestHandler } from "express";
 import { MethodsType } from "../types/types";
-import Events, { getEvents } from "../models/events";
+import Events from "../models/events";
 import bot from "../bot";
 import axios from "axios";
 
 const event: {
   [name in MethodsType]?: RequestHandler;
 } = {
-  get: async (_, res) => {
-    res.json(await getEvents());
+  get: async ({ query: { gte, lte } }, res) => {
+    const date: { $gte?: Date; $lte?: Date } = {};
+    if (gte) date[`$gte`] = new Date(gte as string);
+    if (lte) date[`$lte`] = new Date(lte as string);
+    res.json(
+      await Events.find({ date })
+        .sort({ date: 1 })
+        .populate(`author`)
+        .lean()
+        .exec()
+    );
   },
   post: async ({ user, admin, body }, res) => {
     try {

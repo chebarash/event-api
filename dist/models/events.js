@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEvents = void 0;
 const mongoose_1 = require("mongoose");
 const eventSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
@@ -31,14 +30,4 @@ const eventSchema = new mongoose_1.Schema({
     hashtags: [{ type: String, default: [] }],
 });
 const Events = (0, mongoose_1.model)(`events`, eventSchema);
-const getEvents = (match = {}) => {
-    const date = new Date();
-    date.setDate(date.getDate() - 1);
-    return Events.find(Object.assign(Object.assign({}, match), { date: { $gte: date } }))
-        .sort({ date: 1 })
-        .populate(`author`)
-        .lean()
-        .exec();
-};
-exports.getEvents = getEvents;
 exports.default = Events;

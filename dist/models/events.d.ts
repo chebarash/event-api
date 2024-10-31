@@ -24,5 +24,4 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
 } & import("mongoose").Document<unknown, any, any> & Required<{
     _id: Schema.Types.ObjectId;
 }>, any>;
-export declare const getEvents: (match?: {}) => Promise<Array<EventType>>;
 export default Events;

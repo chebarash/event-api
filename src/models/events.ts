@@ -32,14 +32,4 @@ const eventSchema = new Schema<EventType>({
 
 const Events = model<EventType>(`events`, eventSchema);
 
-export const getEvents = (match = {}): Promise<Array<EventType>> => {
-  const date = new Date();
-  date.setDate(date.getDate() - 1);
-  return Events.find({ ...match, date: { $gte: date } })
-    .sort({ date: 1 })
-    .populate(`author`)
-    .lean()
-    .exec();
-};
-
 export default Events;

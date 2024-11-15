@@ -102,7 +102,6 @@ bot.start(async (ctx) => {
 });
 
 bot.on(`chosen_inline_result`, result);
-bot.on(`inline_query`, inline);
 
 bot.use(async (ctx, next) => {
   try {
@@ -120,6 +119,8 @@ bot.use(async (ctx, next) => {
     await error(ctx, e);
   }
 });
+
+bot.on(`inline_query`, inline);
 
 bot.action(/^clb/g, async (ctx) => {
   const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];

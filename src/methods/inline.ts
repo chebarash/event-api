@@ -59,6 +59,14 @@ const inline = async (
   const data = await Events.find({
     title: { $regex: ctx.inlineQuery.query, $options: `i` },
     date: { $gte: date },
+    $or: [
+      {
+        private: false,
+      },
+      {
+        author: { $in: [...ctx.user.clubs, ...ctx.user.member, ctx.user._id] },
+      },
+    ],
   })
     .sort({ date: 1 })
     .populate(`author`)

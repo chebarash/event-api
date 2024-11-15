@@ -44,6 +44,7 @@ const registration: {
           attendees: event.participants.map(({ email }) => ({ email })),
           guestsCanInviteOthers: false,
           guestsCanSeeOtherGuests: false,
+          status: event.cancelled ? `cancelled` : `confirmed`,
         },
         {
           headers: {

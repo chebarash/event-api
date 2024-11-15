@@ -14,8 +14,7 @@ const participants: {
       ![
         ...user.clubs.map((club: { _id: string }) => `${club._id}`),
         `${user._id}`,
-      ].includes(`${event.author}`) &&
-      !user.organizer
+      ].includes(`${event.author}`)
     )
       return res.status(403).json({ message: "Forbidden" });
     await bot.telegram.sendMessage(

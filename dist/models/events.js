@@ -28,6 +28,7 @@ const eventSchema = new mongoose_1.Schema({
     spots: { type: Number },
     deadline: { type: Date },
     hashtags: [{ type: String, default: [] }],
+    cancelled: { type: Boolean, default: false },
 });
 const Events = (0, mongoose_1.model)(`events`, eventSchema);
 exports.default = Events;

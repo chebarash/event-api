@@ -79,6 +79,58 @@ const event: {
       res.status(500).json({ message: `Wrong data` });
     }
   },
+  put: async ({ user, admin, body }, res) => {
+    if (!user?.organizer && !user?.clubs.length)
+      return res.status(500).json({ message: `You are not organizer` });
+    const e = await Events.findById(body._id).exec();
+    if (!e) return res.status(500).json({ message: `Event not found` });
+    if (
+      ![
+        ...user.clubs.map((club: { _id: string }) => `${club._id}`),
+        `${user._id}`,
+      ].includes(`${e.author}`)
+    )
+      return res.status(403).json({ message: "Forbidden" });
+    const event = await Events.findByIdAndUpdate(body._id, body, {
+      new: true,
+      useFindAndModify: false,
+    })
+      .populate(`author`)
+      .exec();
+    res.json(e);
+    if (event?.eventId) {
+      const startTime = new Date(event.date);
+      const endTime = new Date(startTime.getTime() + (event.duration || 0));
+      await axios.put<{ id: string }>(
+        `https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${event.eventId}`,
+        {
+          summary: event.title,
+          location: event.venue,
+          description: event.description,
+          start: {
+            dateTime: startTime.toISOString(),
+          },
+          end: {
+            dateTime: endTime.toISOString(),
+          },
+          reminders: {
+            useDefault: false,
+            overrides: [{ method: "popup", minutes: 30 }],
+          },
+          attendees: event.participants.map(({ email }) => ({ email })),
+          guestsCanInviteOthers: false,
+          guestsCanSeeOtherGuests: false,
+          status: event.cancelled ? `cancelled` : `confirmed`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${admin.accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+  },
 };
 
 export = event;

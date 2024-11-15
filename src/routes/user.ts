@@ -5,7 +5,7 @@ const user: {
   [name in MethodsType]?: RequestHandler;
 } = {
   get: async ({ user }, res) => {
-    if (!user) return res.status(500).json({ message: `User not found` });
+    if (!user) return res.status(500).json({ message: `Login to register` });
     return res.json(user);
   },
 };

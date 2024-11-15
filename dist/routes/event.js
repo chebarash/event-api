@@ -78,5 +78,52 @@ const event = {
             res.status(500).json({ message: `Wrong data` });
         }
     }),
+    put: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body }, res) {
+        if (!(user === null || user === void 0 ? void 0 : user.organizer) && !(user === null || user === void 0 ? void 0 : user.clubs.length))
+            return res.status(500).json({ message: `You are not organizer` });
+        const e = yield events_1.default.findById(body._id).exec();
+        if (!e)
+            return res.status(500).json({ message: `Event not found` });
+        if (![
+            ...user.clubs.map((club) => `${club._id}`),
+            `${user._id}`,
+        ].includes(`${e.author}`))
+            return res.status(403).json({ message: "Forbidden" });
+        const event = yield events_1.default.findByIdAndUpdate(body._id, body, {
+            new: true,
+            useFindAndModify: false,
+        })
+            .populate(`author`)
+            .exec();
+        res.json(e);
+        if (event === null || event === void 0 ? void 0 : event.eventId) {
+            const startTime = new Date(event.date);
+            const endTime = new Date(startTime.getTime() + (event.duration || 0));
+            yield axios_1.default.put(`https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${event.eventId}`, {
+                summary: event.title,
+                location: event.venue,
+                description: event.description,
+                start: {
+                    dateTime: startTime.toISOString(),
+                },
+                end: {
+                    dateTime: endTime.toISOString(),
+                },
+                reminders: {
+                    useDefault: false,
+                    overrides: [{ method: "popup", minutes: 30 }],
+                },
+                attendees: event.participants.map(({ email }) => ({ email })),
+                guestsCanInviteOthers: false,
+                guestsCanSeeOtherGuests: false,
+                status: event.cancelled ? `cancelled` : `confirmed`,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${admin.accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            });
+        }
+    }),
 };
 module.exports = event;

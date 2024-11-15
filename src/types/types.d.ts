@@ -52,6 +52,7 @@ export type EventType = {
   content?: ContentType;
   template?: string;
   button?: string;
+  cancelled: boolean;
 } & Document;
 
 export type MethodsType =

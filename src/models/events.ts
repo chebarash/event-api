@@ -28,6 +28,7 @@ const eventSchema = new Schema<EventType>({
   spots: { type: Number },
   deadline: { type: Date },
   hashtags: [{ type: String, default: [] }],
+  cancelled: { type: Boolean, default: false },
 });
 
 const Events = model<EventType>(`events`, eventSchema);

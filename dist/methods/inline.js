@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const events_1 = __importDefault(require("../models/events"));
+const users_1 = __importDefault(require("../models/users"));
 function truncateHtml(html, length) {
     const pattern = /<([a-zA-Z0-9\-]+)(\s*[^>]*)?>([\s\S]*?)<\/\1>/g;
     function truncateNode(node) {
@@ -44,6 +45,8 @@ const loadTemplate = (template = `<b>{{title}}</b>\n\n{{description}}\n\n<b>Venu
 };
 const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const offset = parseInt(ctx.inlineQuery.offset) || 0;
+    const { id } = ctx.from;
+    const user = yield users_1.default.findOne({ id });
     const date = new Date();
     date.setDate(date.getDate() - 1);
     const data = yield events_1.default.find({
@@ -54,7 +57,9 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
                 private: false,
             },
             {
-                author: { $in: [...ctx.user.clubs, ...ctx.user.member, ctx.user._id] },
+                author: {
+                    $in: [...((user === null || user === void 0 ? void 0 : user.clubs) || []), ...((user === null || user === void 0 ? void 0 : user.member) || []), user === null || user === void 0 ? void 0 : user._id],
+                },
             },
         ],
     })

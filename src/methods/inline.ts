@@ -5,6 +5,7 @@ import {
   Update,
 } from "telegraf/typings/core/types/typegram";
 import Events from "../models/events";
+import Users from "../models/users";
 
 function truncateHtml(html: string, length: number) {
   const pattern = /<([a-zA-Z0-9\-]+)(\s*[^>]*)?>([\s\S]*?)<\/\1>/g;
@@ -54,6 +55,9 @@ const inline = async (
 ) => {
   const offset = parseInt(ctx.inlineQuery.offset) || 0;
 
+  const { id } = ctx.from;
+  const user = await Users.findOne({ id });
+
   const date = new Date();
   date.setDate(date.getDate() - 1);
   const data = await Events.find({
@@ -64,7 +68,9 @@ const inline = async (
         private: false,
       },
       {
-        author: { $in: [...ctx.user.clubs, ...ctx.user.member, ctx.user._id] },
+        author: {
+          $in: [...(user?.clubs || []), ...(user?.member || []), user?._id],
+        },
       },
     ],
   })

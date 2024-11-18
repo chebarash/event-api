@@ -96,6 +96,7 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 bot.on(`chosen_inline_result`, result_1.default);
+bot.on(`inline_query`, inline_1.default);
 bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (ctx.from) {
@@ -112,7 +113,6 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, error_1.default)(ctx, e);
     }
 }));
-bot.on(`inline_query`, inline_1.default);
 bot.action(/^clb/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const _id = ctx.callbackQuery.data.split(`//`)[1];
     const club = yield clubs_1.default.findOne({ _id });

@@ -14,6 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const events_1 = __importDefault(require("../models/events"));
 const bot_1 = __importDefault(require("../bot"));
 const axios_1 = __importDefault(require("axios"));
+const def = {
+    spots: undefined,
+    deadline: undefined,
+    external: undefined,
+    content: undefined,
+    template: undefined,
+    button: undefined,
+};
 const event = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { gte, lte } }, res) {
         const date = {};
@@ -89,12 +97,11 @@ const event = {
             `${user._id}`,
         ].includes(`${e.author}`))
             return res.status(403).json({ message: "Forbidden" });
-        const event = yield events_1.default.findByIdAndUpdate(body._id, body, {
-            new: true,
-            useFindAndModify: false,
-        })
-            .populate(`author`)
-            .exec();
+        const event = Object.assign(Object.assign({}, def), body);
+        for (const key in event)
+            e[key] = event[key];
+        yield e.save();
+        yield e.populate(`author`);
         res.json(e);
         if (event === null || event === void 0 ? void 0 : event.eventId) {
             const startTime = new Date(event.date);

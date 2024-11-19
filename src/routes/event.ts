@@ -1,8 +1,17 @@
 import { RequestHandler } from "express";
-import { MethodsType } from "../types/types";
+import { EventType, MethodsType } from "../types/types";
 import Events from "../models/events";
 import bot from "../bot";
 import axios from "axios";
+
+const def = {
+  spots: undefined,
+  deadline: undefined,
+  external: undefined,
+  content: undefined,
+  template: undefined,
+  button: undefined,
+};
 
 const event: {
   [name in MethodsType]?: RequestHandler;
@@ -91,12 +100,10 @@ const event: {
       ].includes(`${e.author}`)
     )
       return res.status(403).json({ message: "Forbidden" });
-    const event = await Events.findByIdAndUpdate(body._id, body, {
-      new: true,
-      useFindAndModify: false,
-    })
-      .populate(`author`)
-      .exec();
+    const event: EventType = { ...def, ...body };
+    for (const key in event) (e as any)[key] = event[key as keyof EventType];
+    await e.save();
+    await e.populate(`author`);
     res.json(e);
     if (event?.eventId) {
       const startTime = new Date(event.date);

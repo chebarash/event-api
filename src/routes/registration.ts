@@ -18,10 +18,7 @@ const registration: {
     )
       .populate([`author`, `participants`])
       .exec();
-    res.json({
-      ...event?.toObject(),
-      participants: event?.populated(`participants`),
-    });
+    res.json(event);
     if (event?.eventId) {
       const startTime = new Date(event.date);
       const endTime = new Date(startTime.getTime() + (event.duration || 0));

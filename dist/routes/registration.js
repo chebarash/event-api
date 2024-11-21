@@ -24,7 +24,7 @@ const registration = {
             : { $addToSet: { participants: user._id } }, { new: true, useFindAndModify: false })
             .populate([`author`, `participants`])
             .exec();
-        res.json(Object.assign(Object.assign({}, event === null || event === void 0 ? void 0 : event.toObject()), { participants: event === null || event === void 0 ? void 0 : event.populated(`participants`) }));
+        res.json(event);
         if (event === null || event === void 0 ? void 0 : event.eventId) {
             const startTime = new Date(event.date);
             const endTime = new Date(startTime.getTime() + (event.duration || 0));

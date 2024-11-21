@@ -23,7 +23,7 @@ const event: {
     res.json(
       await Events.find({ date })
         .sort({ date: 1 })
-        .populate(`author`)
+        .populate([`author`, `participants`])
         .lean()
         .exec()
     );
@@ -64,7 +64,9 @@ const event: {
         }
       );
       body.eventId = id;
-      const event = await (await new Events(body).save()).populate(`author`);
+      const event = await (
+        await new Events(body).save()
+      ).populate([`author`, `participants`]);
       await bot.telegram.sendMessage(
         process.env.ADMIN_ID,
         `New Event by ${event.author.name}`,
@@ -103,17 +105,17 @@ const event: {
     const event: EventType = { ...def, ...body };
     for (const key in event) (e as any)[key] = event[key as keyof EventType];
     await e.save();
-    await e.populate(`author`);
+    await e.populate([`author`, `participants`]);
     res.json(e);
-    if (event?.eventId) {
-      const startTime = new Date(event.date);
-      const endTime = new Date(startTime.getTime() + (event.duration || 0));
+    if (e?.eventId) {
+      const startTime = new Date(e.date);
+      const endTime = new Date(startTime.getTime() + (e.duration || 0));
       await axios.put<{ id: string }>(
-        `https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${event.eventId}`,
+        `https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${e.eventId}`,
         {
-          summary: event.title,
-          location: event.venue,
-          description: event.description,
+          summary: e.title,
+          location: e.venue,
+          description: e.description,
           start: {
             dateTime: startTime.toISOString(),
           },
@@ -124,10 +126,10 @@ const event: {
             useDefault: false,
             overrides: [{ method: "popup", minutes: 30 }],
           },
-          attendees: event.participants.map(({ email }) => ({ email })),
+          attendees: e.participants.map(({ email }) => ({ email })),
           guestsCanInviteOthers: false,
           guestsCanSeeOtherGuests: false,
-          status: event.cancelled ? `cancelled` : `confirmed`,
+          status: e.cancelled ? `cancelled` : `confirmed`,
         },
         {
           headers: {

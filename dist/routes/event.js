@@ -31,7 +31,7 @@ const event = {
             date[`$lte`] = new Date(lte);
         res.json(yield events_1.default.find({ date })
             .sort({ date: 1 })
-            .populate(`author`)
+            .populate([`author`, `participants`])
             .lean()
             .exec());
     }),
@@ -65,7 +65,7 @@ const event = {
                 },
             });
             body.eventId = id;
-            const event = yield (yield new events_1.default(body).save()).populate(`author`);
+            const event = yield (yield new events_1.default(body).save()).populate([`author`, `participants`]);
             yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}`, {
                 reply_markup: {
                     inline_keyboard: [
@@ -101,15 +101,15 @@ const event = {
         for (const key in event)
             e[key] = event[key];
         yield e.save();
-        yield e.populate(`author`);
+        yield e.populate([`author`, `participants`]);
         res.json(e);
-        if (event === null || event === void 0 ? void 0 : event.eventId) {
-            const startTime = new Date(event.date);
-            const endTime = new Date(startTime.getTime() + (event.duration || 0));
-            yield axios_1.default.put(`https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${event.eventId}`, {
-                summary: event.title,
-                location: event.venue,
-                description: event.description,
+        if (e === null || e === void 0 ? void 0 : e.eventId) {
+            const startTime = new Date(e.date);
+            const endTime = new Date(startTime.getTime() + (e.duration || 0));
+            yield axios_1.default.put(`https://www.googleapis.com/calendar/v3/calendars/${admin.calendarId}/events/${e.eventId}`, {
+                summary: e.title,
+                location: e.venue,
+                description: e.description,
                 start: {
                     dateTime: startTime.toISOString(),
                 },
@@ -120,10 +120,10 @@ const event = {
                     useDefault: false,
                     overrides: [{ method: "popup", minutes: 30 }],
                 },
-                attendees: event.participants.map(({ email }) => ({ email })),
+                attendees: e.participants.map(({ email }) => ({ email })),
                 guestsCanInviteOthers: false,
                 guestsCanSeeOtherGuests: false,
-                status: event.cancelled ? `cancelled` : `confirmed`,
+                status: e.cancelled ? `cancelled` : `confirmed`,
             }, {
                 headers: {
                     Authorization: `Bearer ${admin.accessToken}`,

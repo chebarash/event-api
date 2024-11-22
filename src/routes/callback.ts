@@ -2,8 +2,9 @@ import { RequestHandler } from "express";
 import { MethodsType } from "../types/types";
 import Users from "../models/users";
 import axios from "axios";
+import bot from "../bot";
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } =
+const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, GROUP } =
   process.env;
 
 const callback: {
@@ -36,6 +37,13 @@ const callback: {
 
     const { id, option }: { [name: string]: string } =
       typeof state == `string` ? JSON.parse(state) : {};
+
+    const old = await Users.findOne({ email });
+    if (old) {
+      await bot.telegram.banChatMember(GROUP, old.id);
+      await bot.telegram.unbanChatMember(GROUP, old.id);
+    }
+
     await Users.updateOne(
       { email },
       {

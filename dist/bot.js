@@ -21,7 +21,63 @@ const result_1 = __importDefault(require("./methods/result"));
 const users_1 = __importDefault(require("./models/users"));
 const temp_1 = require("./methods/temp");
 const clubs_1 = __importDefault(require("./models/clubs"));
-const bot = new telegraf_1.Telegraf(process.env.TOKEN);
+const filters_1 = require("telegraf/filters");
+const { GOOGLE_AUTH_URL, TOKEN, GROUP, ADMIN_ID } = process.env;
+const bot = new telegraf_1.Telegraf(TOKEN);
+bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield next();
+    }
+    catch (e) {
+        yield (0, error_1.default)(ctx, e);
+    }
+}));
+bot.on((0, filters_1.message)(`new_chat_members`), (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!GROUP.includes(`${ctx.chat.id}`))
+        yield ctx.leaveChat();
+}));
+const accept = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    yield ctx.telegram.approveChatJoinRequest(GROUP, ctx.user.id);
+    try {
+        yield ctx.telegram.sendMessage(ADMIN_ID, `Join group`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: ctx.user.name,
+                            url: `tg://user?id=${ctx.user.id}`,
+                        },
+                    ],
+                ],
+            },
+        });
+    }
+    catch (e) {
+        yield ctx.telegram.sendMessage(ADMIN_ID, `Join group`);
+    }
+    yield ctx.telegram.sendMessage(ADMIN_ID, `<pre><code class="language-json">${JSON.stringify(ctx.user, null, 2)}</code></pre>`, { parse_mode: `HTML` });
+});
+bot.on(`chat_join_request`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { id, first_name } = ctx.update.chat_join_request.from;
+    const res = yield users_1.default.findOne({ id });
+    if (!res)
+        return yield ctx.telegram.sendMessage(id, `Welcome to the bot where you can become part of the university community.\n\nTo continue, you must <b>log in using your student email</b>.`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: `Log In With Google`,
+                            url: `${GOOGLE_AUTH_URL}?id=${(_a = ctx.from) === null || _a === void 0 ? void 0 : _a.id}&option=join`,
+                        },
+                    ],
+                ],
+            },
+            parse_mode: `HTML`,
+        });
+    ctx.user = res;
+    yield accept(ctx);
+}));
 const getClub = (ctx_1, ...args_1) => __awaiter(void 0, [ctx_1, ...args_1], void 0, function* (ctx, query = {}) {
     const club = yield clubs_1.default.findOne(query);
     if (!club)
@@ -75,43 +131,41 @@ const getClubs = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         : yield ctx.replyWithPhoto(media, { caption, reply_markup });
 });
 bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield (0, log_1.default)(ctx);
-        const { id } = ctx.from;
-        const option = ctx.message.text.split(` `)[1];
-        const res = yield users_1.default.findOne({ id });
-        if (!res)
-            return yield (0, login_1.default)(ctx, option);
-        ctx.user = res;
-        if (option === `clubs`)
-            return yield getClubs(ctx);
-        if (option === null || option === void 0 ? void 0 : option.startsWith(`clb-`)) {
-            const username = option.replace(`clb-`, ``);
-            return yield getClub(ctx, { username });
-        }
-        return yield (0, start_1.default)(ctx);
+    var _a;
+    if (((_a = ctx.chat) === null || _a === void 0 ? void 0 : _a.type) != `private`)
+        return;
+    yield (0, log_1.default)(ctx);
+    const { id } = ctx.from;
+    const option = ctx.message.text.split(` `)[1];
+    const res = yield users_1.default.findOne({ id });
+    if (!res)
+        return yield (0, login_1.default)(ctx, option);
+    ctx.user = res;
+    if (option === `clubs`)
+        return yield getClubs(ctx);
+    if (option === `join`)
+        return yield accept(ctx);
+    if (option === null || option === void 0 ? void 0 : option.startsWith(`clb-`)) {
+        const username = option.replace(`clb-`, ``);
+        return yield getClub(ctx, { username });
     }
-    catch (e) {
-        yield (0, error_1.default)(ctx, e);
-    }
+    return yield (0, start_1.default)(ctx);
 }));
 bot.on(`chosen_inline_result`, result_1.default);
 bot.on(`inline_query`, inline_1.default);
 bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        if (ctx.from) {
-            const { id } = ctx.from;
-            const res = yield users_1.default.findOne({ id });
-            if (!res)
-                return yield (0, login_1.default)(ctx);
-            ctx.user = res;
-        }
-        yield next();
-        yield (0, log_1.default)(ctx);
+    var _a;
+    if (((_a = ctx.chat) === null || _a === void 0 ? void 0 : _a.type) != `private`)
+        return;
+    if (ctx.from) {
+        const { id } = ctx.from;
+        const res = yield users_1.default.findOne({ id });
+        if (!res)
+            return yield (0, login_1.default)(ctx);
+        ctx.user = res;
     }
-    catch (e) {
-        yield (0, error_1.default)(ctx, e);
-    }
+    yield next();
+    yield (0, log_1.default)(ctx);
 }));
 bot.action(/^clb/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const _id = ctx.callbackQuery.data.split(`//`)[1];
@@ -135,15 +189,10 @@ bot.action(/^club/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     getClub(ctx, { _id });
 }));
 bot.command(`clb`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const clubs = (yield clubs_1.default.find({}))
-            .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
-            .join(`\n`);
-        yield ctx.reply(`Clubs:\n${clubs}`);
-    }
-    catch (e) {
-        yield (0, error_1.default)(ctx, e);
-    }
+    const clubs = (yield clubs_1.default.find({}))
+        .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
+        .join(`\n`);
+    yield ctx.reply(`Clubs:\n${clubs}`);
 }));
 bot.command(`whoami`, (ctx) => ctx.reply(`<pre><code class="language-json">${JSON.stringify(ctx.user, null, 2)}</code></pre>`, { parse_mode: `HTML` }));
 (0, temp_1.tempMethod)(bot);

@@ -10,8 +10,77 @@ import Users from "./models/users";
 import { tempMethod } from "./methods/temp";
 import Clubs from "./models/clubs";
 import { InlineKeyboardMarkup } from "telegraf/typings/core/types/typegram";
+import { message } from "telegraf/filters";
 
-const bot = new Telegraf<MyContext>(process.env.TOKEN);
+const { GOOGLE_AUTH_URL, TOKEN, GROUP, ADMIN_ID } = process.env;
+
+const bot = new Telegraf<MyContext>(TOKEN);
+
+bot.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (e) {
+    await error(ctx, e);
+  }
+});
+
+bot.on(message(`new_chat_members`), async (ctx) => {
+  if (!GROUP.includes(`${ctx.chat.id}`)) await ctx.leaveChat();
+});
+
+const accept = async (ctx: MyContext) => {
+  await ctx.telegram.approveChatJoinRequest(GROUP, ctx.user.id);
+  try {
+    await ctx.telegram.sendMessage(ADMIN_ID, `Join group`, {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: ctx.user.name,
+              url: `tg://user?id=${ctx.user.id}`,
+            },
+          ],
+        ],
+      },
+    });
+  } catch (e: any) {
+    await ctx.telegram.sendMessage(ADMIN_ID, `Join group`);
+  }
+  await ctx.telegram.sendMessage(
+    ADMIN_ID,
+    `<pre><code class="language-json">${JSON.stringify(
+      ctx.user,
+      null,
+      2
+    )}</code></pre>`,
+    { parse_mode: `HTML` }
+  );
+};
+
+bot.on(`chat_join_request`, async (ctx) => {
+  const { id, first_name } = ctx.update.chat_join_request.from;
+  const res = await Users.findOne({ id });
+  if (!res)
+    return await ctx.telegram.sendMessage(
+      id,
+      `Welcome to the bot where you can become part of the university community.\n\nTo continue, you must <b>log in using your student email</b>.`,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: `Log In With Google`,
+                url: `${GOOGLE_AUTH_URL}?id=${ctx.from?.id}&option=join`,
+              },
+            ],
+          ],
+        },
+        parse_mode: `HTML`,
+      }
+    );
+  ctx.user = res;
+  await accept(ctx);
+});
 
 const getClub = async (ctx: MyContext, query: { [name: string]: any } = {}) => {
   const club = await Clubs.findOne(query);
@@ -79,46 +148,41 @@ const getClubs = async (ctx: MyContext) => {
 };
 
 bot.start(async (ctx) => {
-  try {
-    await log(ctx);
-    const { id } = ctx.from;
-    const option = ctx.message.text.split(` `)[1];
+  if (ctx.chat?.type != `private`) return;
+  await log(ctx);
+  const { id } = ctx.from;
+  const option = ctx.message.text.split(` `)[1];
 
-    const res = await Users.findOne({ id });
-    if (!res) return await login(ctx, option);
-    ctx.user = res;
+  const res = await Users.findOne({ id });
+  if (!res) return await login(ctx, option);
+  ctx.user = res;
 
-    if (option === `clubs`) return await getClubs(ctx);
+  if (option === `clubs`) return await getClubs(ctx);
+  if (option === `join`) return await accept(ctx);
 
-    if (option?.startsWith(`clb-`)) {
-      const username = option.replace(`clb-`, ``);
-      return await getClub(ctx, { username });
-    }
-
-    return await start(ctx);
-  } catch (e) {
-    await error(ctx, e);
+  if (option?.startsWith(`clb-`)) {
+    const username = option.replace(`clb-`, ``);
+    return await getClub(ctx, { username });
   }
+
+  return await start(ctx);
 });
 
 bot.on(`chosen_inline_result`, result);
 bot.on(`inline_query`, inline);
 
 bot.use(async (ctx, next) => {
-  try {
-    if (ctx.from) {
-      const { id } = ctx.from;
+  if (ctx.chat?.type != `private`) return;
+  if (ctx.from) {
+    const { id } = ctx.from;
 
-      const res = await Users.findOne({ id });
-      if (!res) return await login(ctx);
-      ctx.user = res;
-    }
-
-    await next();
-    await log(ctx);
-  } catch (e) {
-    await error(ctx, e);
+    const res = await Users.findOne({ id });
+    if (!res) return await login(ctx);
+    ctx.user = res;
   }
+
+  await next();
+  await log(ctx);
 });
 
 bot.action(/^clb/g, async (ctx) => {
@@ -149,14 +213,10 @@ bot.action(/^club/g, async (ctx) => {
 });
 
 bot.command(`clb`, async (ctx) => {
-  try {
-    const clubs = (await Clubs.find({}))
-      .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
-      .join(`\n`);
-    await ctx.reply(`Clubs:\n${clubs}`);
-  } catch (e) {
-    await error(ctx, e);
-  }
+  const clubs = (await Clubs.find({}))
+    .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
+    .join(`\n`);
+  await ctx.reply(`Clubs:\n${clubs}`);
 });
 
 bot.command(`whoami`, (ctx) =>

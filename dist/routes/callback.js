@@ -13,7 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const users_1 = __importDefault(require("../models/users"));
 const axios_1 = __importDefault(require("axios"));
-const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET } = process.env;
+const bot_1 = __importDefault(require("../bot"));
+const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, GROUP } = process.env;
 const callback = {
     get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { code, state } = req.query;
@@ -26,6 +27,11 @@ const callback = {
         });
         const { data: { email, picture, given_name, family_name }, } = yield axios_1.default.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
         const { id, option } = typeof state == `string` ? JSON.parse(state) : {};
+        const old = yield users_1.default.findOne({ email });
+        if (old) {
+            yield bot_1.default.telegram.banChatMember(GROUP, old.id);
+            yield bot_1.default.telegram.unbanChatMember(GROUP, old.id);
+        }
         yield users_1.default.updateOne({ email }, {
             name: [given_name, family_name]
                 .map((v) => v.charAt(0).toUpperCase() + v.slice(1).toLocaleLowerCase())

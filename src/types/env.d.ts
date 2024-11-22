@@ -9,5 +9,6 @@ declare namespace NodeJS {
     GOOGLE_CALLBACK_URL: string;
     GOOGLE_CLIENT_SECRET: string;
     VERCEL_URL: string;
+    GROUP: string;
   }
 }

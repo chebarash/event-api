@@ -57,9 +57,17 @@ const accept = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     }
     yield ctx.telegram.sendMessage(ADMIN_ID, `<pre><code class="language-json">${JSON.stringify(ctx.user, null, 2)}</code></pre>`, { parse_mode: `HTML` });
 });
+const phoneNumber = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield ctx.telegram.sendMessage(ctx.from.id, `Please provide your phone number:`, {
+        reply_markup: {
+            keyboard: [[{ text: `Send Phone Number`, request_contact: true }]],
+            resize_keyboard: true,
+        },
+    });
+});
 bot.on(`chat_join_request`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { id, first_name } = ctx.update.chat_join_request.from;
+    const { id } = ctx.update.chat_join_request.from;
     const res = yield users_1.default.findOne({ id });
     if (!res)
         return yield ctx.telegram.sendMessage(id, `Welcome to the bot where you can become part of the university community.\n\nTo continue, you must <b>log in using your student email</b>.`, {
@@ -75,6 +83,8 @@ bot.on(`chat_join_request`, (ctx) => __awaiter(void 0, void 0, void 0, function*
             },
             parse_mode: `HTML`,
         });
+    if (!res.phone)
+        return yield phoneNumber(ctx);
     ctx.user = res;
     yield accept(ctx);
 }));
@@ -141,6 +151,8 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     if (!res)
         return yield (0, login_1.default)(ctx, option);
     ctx.user = res;
+    if (!ctx.user.phone)
+        return yield phoneNumber(ctx);
     if (option === `clubs`)
         return yield getClubs(ctx);
     if (option === `join`)
@@ -153,6 +165,29 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 bot.on(`chosen_inline_result`, result_1.default);
 bot.on(`inline_query`, inline_1.default);
+bot.on(`contact`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    if (((_a = ctx.chat) === null || _a === void 0 ? void 0 : _a.type) != `private`)
+        return;
+    const { phone_number } = ctx.message.contact;
+    const { id } = ctx.from;
+    const res = yield users_1.default.findOne({ id });
+    if (!res)
+        return yield (0, login_1.default)(ctx);
+    res.phone = phone_number;
+    yield res.save();
+    ctx.user = res;
+    yield ctx.reply(`Phone number saved.`, {
+        reply_markup: { remove_keyboard: true },
+    });
+    try {
+        yield accept(ctx);
+    }
+    catch (e) {
+        console.log(e);
+    }
+    return yield (0, start_1.default)(ctx);
+}));
 bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     if (((_a = ctx.chat) === null || _a === void 0 ? void 0 : _a.type) != `private`)
@@ -163,6 +198,8 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
         if (!res)
             return yield (0, login_1.default)(ctx);
         ctx.user = res;
+        if (!ctx.user.phone)
+            return yield phoneNumber(ctx);
     }
     yield next();
     yield (0, log_1.default)(ctx);

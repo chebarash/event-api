@@ -57,8 +57,20 @@ const accept = async (ctx: MyContext) => {
   );
 };
 
+const phoneNumber = async (ctx: MyContext) =>
+  await ctx.telegram.sendMessage(
+    ctx.from!.id,
+    `Please provide your phone number:`,
+    {
+      reply_markup: {
+        keyboard: [[{ text: `Send Phone Number`, request_contact: true }]],
+        resize_keyboard: true,
+      },
+    }
+  );
+
 bot.on(`chat_join_request`, async (ctx) => {
-  const { id, first_name } = ctx.update.chat_join_request.from;
+  const { id } = ctx.update.chat_join_request.from;
   const res = await Users.findOne({ id });
   if (!res)
     return await ctx.telegram.sendMessage(
@@ -78,6 +90,9 @@ bot.on(`chat_join_request`, async (ctx) => {
         parse_mode: `HTML`,
       }
     );
+
+  if (!res.phone) return await phoneNumber(ctx);
+
   ctx.user = res;
   await accept(ctx);
 });
@@ -157,6 +172,8 @@ bot.start(async (ctx) => {
   if (!res) return await login(ctx, option);
   ctx.user = res;
 
+  if (!ctx.user.phone) return await phoneNumber(ctx);
+
   if (option === `clubs`) return await getClubs(ctx);
   if (option === `join`) return await accept(ctx);
 
@@ -171,6 +188,26 @@ bot.start(async (ctx) => {
 bot.on(`chosen_inline_result`, result);
 bot.on(`inline_query`, inline);
 
+bot.on(`contact`, async (ctx) => {
+  if (ctx.chat?.type != `private`) return;
+  const { phone_number } = ctx.message.contact;
+  const { id } = ctx.from;
+  const res = await Users.findOne({ id });
+  if (!res) return await login(ctx);
+  res.phone = phone_number;
+  await res.save();
+  ctx.user = res;
+  await ctx.reply(`Phone number saved.`, {
+    reply_markup: { remove_keyboard: true },
+  });
+  try {
+    await accept(ctx);
+  } catch (e) {
+    console.log(e);
+  }
+  return await start(ctx);
+});
+
 bot.use(async (ctx, next) => {
   if (ctx.chat?.type != `private`) return;
   if (ctx.from) {
@@ -179,6 +216,8 @@ bot.use(async (ctx, next) => {
     const res = await Users.findOne({ id });
     if (!res) return await login(ctx);
     ctx.user = res;
+
+    if (!ctx.user.phone) return await phoneNumber(ctx);
   }
 
   await next();

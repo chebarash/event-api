@@ -9,6 +9,7 @@ declare const Users: import("mongoose").Model<UserType, {}, {}, {}, import("mong
     organizer: boolean;
     member: Array<import("../types/types").ClubType>;
     clubs: Array<import("../types/types").ClubType>;
+    phone?: string;
 } & import("mongoose").Document<unknown, any, any> & Required<{
     _id: Schema.Types.ObjectId;
 }>, any>;

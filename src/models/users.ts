@@ -10,6 +10,7 @@ const usersSchema = new Schema<UserType>({
   member: [{ type: Schema.Types.ObjectId, ref: `clubs` }],
   clubs: [{ type: Schema.Types.ObjectId, ref: `clubs`, default: [] }],
   phone: { type: String },
+  joined: { type: Boolean, default: false, required: true },
 });
 
 const Users = model<UserType>(`users`, usersSchema);

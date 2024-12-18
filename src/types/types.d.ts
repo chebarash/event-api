@@ -28,6 +28,7 @@ export type UserType = {
   member: Array<ClubType>;
   clubs: Array<ClubType>;
   phone?: string;
+  joined: boolean;
 } & Document;
 
 export type ContentType = { type: `video` | `photo`; fileId: string };

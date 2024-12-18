@@ -12,16 +12,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const express_1 = require("express");
-const auth_1 = __importDefault(require("./routes/auth"));
+const participants_1 = __importDefault(require("./routes/participants"));
+const registration_1 = __importDefault(require("./routes/registration"));
 const callback_1 = __importDefault(require("./routes/callback"));
 const event_1 = __importDefault(require("./routes/event"));
-const registration_1 = __importDefault(require("./routes/registration"));
-const user_1 = __importDefault(require("./routes/user"));
 const photo_1 = __importDefault(require("./routes/photo"));
-const participants_1 = __importDefault(require("./routes/participants"));
+const clubs_1 = __importDefault(require("./routes/clubs"));
+const auth_1 = __importDefault(require("./routes/auth"));
+const user_1 = __importDefault(require("./routes/user"));
+const routes_1 = __importDefault(require("./routes"));
 const appRouter = (0, express_1.Router)();
 const routes = [
+    [`/`, routes_1.default],
     [`/auth`, auth_1.default],
+    [`/clubs`, clubs_1.default],
     [`/callback`, callback_1.default],
     [`/event`, event_1.default],
     [`/registration`, registration_1.default],

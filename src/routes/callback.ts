@@ -40,8 +40,18 @@ const callback: {
 
     const old = await Users.findOne({ email });
     if (old) {
-      await bot.telegram.banChatMember(GROUP, old.id);
-      await bot.telegram.unbanChatMember(GROUP, old.id);
+      try {
+        old.joined = false;
+        await old.save();
+        await bot.telegram.banChatMember(GROUP, old.id);
+        await bot.telegram.unbanChatMember(GROUP, old.id);
+        await bot.telegram.sendMessage(
+          old.id,
+          `You are removed from group since you changed account`
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     await Users.updateOne(

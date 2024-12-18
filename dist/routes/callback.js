@@ -29,8 +29,16 @@ const callback = {
         const { id, option } = typeof state == `string` ? JSON.parse(state) : {};
         const old = yield users_1.default.findOne({ email });
         if (old) {
-            yield bot_1.default.telegram.banChatMember(GROUP, old.id);
-            yield bot_1.default.telegram.unbanChatMember(GROUP, old.id);
+            try {
+                old.joined = false;
+                yield old.save();
+                yield bot_1.default.telegram.banChatMember(GROUP, old.id);
+                yield bot_1.default.telegram.unbanChatMember(GROUP, old.id);
+                yield bot_1.default.telegram.sendMessage(old.id, `You are removed from group since you changed account`);
+            }
+            catch (e) {
+                console.error(e);
+            }
         }
         yield users_1.default.updateOne({ email }, {
             name: [given_name, family_name]

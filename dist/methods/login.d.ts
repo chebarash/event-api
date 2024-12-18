@@ -1,3 +1,3 @@
-import { Context } from "telegraf";
-declare const login: (ctx: Context, option?: string) => Promise<import("@telegraf/types").Message.TextMessage>;
+import { MyContext } from "../types/types";
+declare const login: (ctx: MyContext, option?: string) => Promise<import("@telegraf/types").Message.TextMessage>;
 export = login;

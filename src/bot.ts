@@ -1,18 +1,26 @@
 import { Telegraf } from "telegraf";
+import { message } from "telegraf/filters";
+
 import { MyContext } from "./types/types";
-import log from "./methods/log";
+
+import Users from "./models/users";
+import Clubs from "./models/clubs";
+
+import { tempMethod } from "./methods/temp";
+import phoneNumber from "./methods/phone";
+import contact from "./methods/contact";
+import getClubs from "./methods/clubs";
+import accept from "./methods/accept";
+import inline from "./methods/inline";
+import result from "./methods/result";
+import getClub from "./methods/club";
 import login from "./methods/login";
 import start from "./methods/start";
 import error from "./methods/error";
-import inline from "./methods/inline";
-import result from "./methods/result";
-import Users from "./models/users";
-import { tempMethod } from "./methods/temp";
-import Clubs from "./models/clubs";
-import { InlineKeyboardMarkup } from "telegraf/typings/core/types/typegram";
-import { message } from "telegraf/filters";
+import left from "./methods/left";
+import log from "./methods/log";
 
-const { GOOGLE_AUTH_URL, TOKEN, GROUP, ADMIN_ID } = process.env;
+const { TOKEN, GROUP, LOGS } = process.env;
 
 const bot = new Telegraf<MyContext>(TOKEN);
 
@@ -25,142 +33,8 @@ bot.use(async (ctx, next) => {
 });
 
 bot.on(message(`new_chat_members`), async (ctx) => {
-  if (!GROUP.includes(`${ctx.chat.id}`)) await ctx.leaveChat();
+  if (![GROUP, LOGS].includes(`${ctx.chat.id}`)) await ctx.leaveChat();
 });
-
-const accept = async (ctx: MyContext) => {
-  await ctx.telegram.approveChatJoinRequest(GROUP, ctx.user.id);
-  try {
-    await ctx.telegram.sendMessage(ADMIN_ID, `Join group`, {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: ctx.user.name,
-              url: `tg://user?id=${ctx.user.id}`,
-            },
-          ],
-        ],
-      },
-    });
-  } catch (e: any) {
-    await ctx.telegram.sendMessage(ADMIN_ID, `Join group`);
-  }
-  await ctx.telegram.sendMessage(
-    ADMIN_ID,
-    `<pre><code class="language-json">${JSON.stringify(
-      ctx.user,
-      null,
-      2
-    )}</code></pre>`,
-    { parse_mode: `HTML` }
-  );
-};
-
-const phoneNumber = async (ctx: MyContext) =>
-  await ctx.telegram.sendMessage(
-    ctx.from!.id,
-    `Please provide your phone number:`,
-    {
-      reply_markup: {
-        keyboard: [[{ text: `Send Phone Number`, request_contact: true }]],
-        resize_keyboard: true,
-      },
-    }
-  );
-
-bot.on(`chat_join_request`, async (ctx) => {
-  const { id } = ctx.update.chat_join_request.from;
-  const res = await Users.findOne({ id });
-  if (!res)
-    return await ctx.telegram.sendMessage(
-      id,
-      `Welcome to the bot where you can become part of the university community.\n\nTo continue, you must <b>log in using your student email</b>.`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: `Log In With Google`,
-                url: `${GOOGLE_AUTH_URL}?id=${ctx.from?.id}&option=join`,
-              },
-            ],
-          ],
-        },
-        parse_mode: `HTML`,
-      }
-    );
-
-  if (!res.phone) return await phoneNumber(ctx);
-
-  ctx.user = res;
-  await accept(ctx);
-});
-
-const getClub = async (ctx: MyContext, query: { [name: string]: any } = {}) => {
-  const club = await Clubs.findOne(query);
-
-  if (!club) return await ctx.answerCbQuery(`Club not found.`);
-
-  const caption = `<b>${club.name}</b>\n\n${club.description}\n\n${club.links
-    .map(({ url, text }) => `<a href="${url}">${text}</a>`)
-    .join(` | `)}`;
-
-  const reply_markup: InlineKeyboardMarkup = {
-    inline_keyboard: [
-      [
-        {
-          text: ctx.user.member.map((_id) => `${_id}`).includes(`${club._id}`)
-            ? `Leave`
-            : `Join`,
-          callback_data: `clb//${club._id}`,
-        },
-      ],
-      [{ text: `All Clubs`, callback_data: `clubs` }],
-    ],
-  };
-
-  return ctx.callbackQuery
-    ? await ctx.editMessageMedia(
-        {
-          type: `photo`,
-          media: club.cover,
-          caption,
-          parse_mode: `HTML`,
-        },
-        { reply_markup }
-      )
-    : await ctx.replyWithPhoto(club.cover, {
-        caption,
-        parse_mode: `HTML`,
-        reply_markup,
-      });
-};
-
-const getClubs = async (ctx: MyContext) => {
-  const clubs = await Clubs.find({ hidden: false });
-
-  const media = `AgACAgIAAxkBAAIqHmcIDx23OO0mps3c52_tAAEL1rXNxQAC2ekxGzp-QUgtKkxYQQ24CwEAAwIAA3cAAzYE`;
-  const caption = `Clubs:`;
-  const reply_markup: InlineKeyboardMarkup = {
-    inline_keyboard: clubs.map(({ _id, name }) => [
-      { text: name, callback_data: `club//${_id}` },
-    ]),
-  };
-
-  return ctx.callbackQuery
-    ? await ctx.editMessageMedia(
-        {
-          type: `photo`,
-          media,
-          caption,
-        },
-        {
-          reply_markup,
-        }
-      )
-    : await ctx.replyWithPhoto(media, { caption, reply_markup });
-};
 
 bot.start(async (ctx) => {
   if (ctx.chat?.type != `private`) return;
@@ -171,48 +45,26 @@ bot.start(async (ctx) => {
   const res = await Users.findOne({ id });
   if (!res) return await login(ctx, option);
   ctx.user = res;
-
   if (!ctx.user.phone) return await phoneNumber(ctx);
 
   if (option === `clubs`) return await getClubs(ctx);
-  if (option === `join`) return await accept(ctx);
 
   if (option?.startsWith(`clb-`)) {
     const username = option.replace(`clb-`, ``);
     return await getClub(ctx, { username });
   }
-
+  await accept(ctx);
   return await start(ctx);
 });
 
+bot.on(`contact`, contact);
 bot.on(`chosen_inline_result`, result);
 bot.on(`inline_query`, inline);
 
-bot.on(`contact`, async (ctx) => {
-  if (ctx.chat?.type != `private`) return;
-  const { phone_number } = ctx.message.contact;
-  const { id } = ctx.from;
-  const res = await Users.findOne({ id });
-  if (!res) return await login(ctx);
-  res.phone = phone_number;
-  await res.save();
-  ctx.user = res;
-  await ctx.reply(`Phone number saved.`, {
-    reply_markup: { remove_keyboard: true },
-  });
-  try {
-    await accept(ctx);
-  } catch (e) {
-    console.log(e);
-  }
-  return await start(ctx);
-});
-
 bot.use(async (ctx, next) => {
-  if (ctx.chat?.type != `private`) return;
   if (ctx.from) {
-    const { id } = ctx.from;
-
+    if (ctx.from.is_bot) return;
+    const { id } = (ctx.update as any).message?.left_chat_member || ctx.from;
     const res = await Users.findOne({ id });
     if (!res) return await login(ctx);
     ctx.user = res;
@@ -221,7 +73,15 @@ bot.use(async (ctx, next) => {
   }
 
   await next();
-  await log(ctx);
+  if (ctx.chat && ctx.chat.type == `private`) await log(ctx);
+});
+
+bot.on(`chat_join_request`, accept);
+bot.on(message(`left_chat_member`), left);
+
+bot.use(async (ctx, next) => {
+  if (ctx.chat?.type != `private`) return;
+  await next();
 });
 
 bot.action(/^clb/g, async (ctx) => {

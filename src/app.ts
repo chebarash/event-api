@@ -1,13 +1,15 @@
 import { RequestHandler, Router } from "express";
 import { MethodsType } from "./types/types";
 
-import auth from "./routes/auth";
+import participants from "./routes/participants";
+import registration from "./routes/registration";
 import callback from "./routes/callback";
 import event from "./routes/event";
-import registration from "./routes/registration";
-import user from "./routes/user";
 import photo from "./routes/photo";
-import participants from "./routes/participants";
+import clubs from "./routes/clubs";
+import auth from "./routes/auth";
+import user from "./routes/user";
+import index from "./routes";
 
 const appRouter = Router();
 
@@ -19,7 +21,9 @@ const routes: Array<
     }
   ]
 > = [
+  [`/`, index],
   [`/auth`, auth],
+  [`/clubs`, clubs],
   [`/callback`, callback],
   [`/event`, event],
   [`/registration`, registration],

@@ -10,5 +10,6 @@ declare namespace NodeJS {
     GOOGLE_CLIENT_SECRET: string;
     VERCEL_URL: string;
     GROUP: string;
+    LOGS: string;
   }
 }

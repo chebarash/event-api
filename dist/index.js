@@ -14,15 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const axios_1 = __importDefault(require("axios"));
 const mongoose_1 = require("mongoose");
 const users_1 = __importDefault(require("./models/users"));
+const admin_1 = __importDefault(require("./models/admin"));
 const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
-const clubs_1 = __importDefault(require("./models/clubs"));
-const axios_1 = __importDefault(require("axios"));
-const admin_1 = __importDefault(require("./models/admin"));
-const events_1 = __importDefault(require("./models/events"));
-const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, } = process.env;
+const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, GROUP, LOGS, } = process.env;
 if ([
     TOKEN,
     PORT,
@@ -33,6 +31,8 @@ if ([
     GOOGLE_CALLBACK_URL,
     GOOGLE_CLIENT_SECRET,
     VERCEL_URL,
+    GROUP,
+    LOGS,
 ].some((v) => !v)) {
     console.error(`Environment Variables not set`);
     process.exit(1);
@@ -41,29 +41,7 @@ const app = (0, express_1.default)();
 const port = PORT || 3000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
-app.get(`/`, (_, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield users_1.default.countDocuments();
-    const clubs = yield clubs_1.default.countDocuments({ hidden: false });
-    const events = yield events_1.default.countDocuments();
-    res.json({ users, clubs, events });
-}));
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
-app.get(`/clubs`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const clubs = yield clubs_1.default.find({ hidden: false });
-        const clubList = yield Promise.all(clubs.map((club) => __awaiter(void 0, void 0, void 0, function* () {
-            const membersCount = yield users_1.default.countDocuments({
-                member: club._id,
-            });
-            return { name: club.name, members: membersCount };
-        })));
-        res.json(clubList.sort((a, b) => b.members - a.members));
-    }
-    catch (error) {
-        res.status(500).json([]);
-        console.error("Error emitting club list:", error);
-    }
-}));
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const admin = yield admin_1.default.findOne();

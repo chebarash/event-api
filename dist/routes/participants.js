@@ -26,7 +26,7 @@ const participants = {
         ].includes(`${event.author}`))
             return res.status(403).json({ message: "Forbidden" });
         yield bot_1.default.telegram.sendMessage(user.id, `<b>Participants of the event ${event.title}:</b>\n${event.participants
-            .map(({ name, email }, i) => `<b>${i + 1}.</b> ${name} (${email})`)
+            .map(({ name, email, id }, i) => `<b>${i + 1}.</b> <code>${id}</code> ${name} (${email})`)
             .join("\n")}`, { parse_mode: "HTML" });
         return res.json({ ok: true });
     }),

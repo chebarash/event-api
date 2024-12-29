@@ -31,7 +31,7 @@ const event = {
             date[`$lte`] = new Date(lte);
         res.json(yield events_1.default.find({ date })
             .sort({ date: 1 })
-            .populate([`author`, `registered`])
+            .populate([`author`, `registered`, `participated`])
             .lean()
             .exec());
     }),
@@ -65,7 +65,7 @@ const event = {
                 },
             });
             body.eventId = id;
-            const event = yield (yield new events_1.default(body).save()).populate([`author`, `registered`]);
+            const event = yield (yield new events_1.default(body).save()).populate([`author`, `registered`, `participated`]);
             yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}`, {
                 reply_markup: {
                     inline_keyboard: [
@@ -101,7 +101,7 @@ const event = {
         for (const key in event)
             e[key] = event[key];
         yield e.save();
-        yield e.populate([`author`, `registered`]);
+        yield e.populate([`author`, `registered`, `participated`]);
         res.json(e);
         if (e === null || e === void 0 ? void 0 : e.eventId) {
             const startTime = new Date(e.date);

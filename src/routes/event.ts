@@ -23,7 +23,7 @@ const event: {
     res.json(
       await Events.find({ date })
         .sort({ date: 1 })
-        .populate([`author`, `registered`])
+        .populate([`author`, `registered`, `participated`])
         .lean()
         .exec()
     );
@@ -66,7 +66,7 @@ const event: {
       body.eventId = id;
       const event = await (
         await new Events(body).save()
-      ).populate([`author`, `registered`]);
+      ).populate([`author`, `registered`, `participated`]);
       await bot.telegram.sendMessage(
         process.env.ADMIN_ID,
         `New Event by ${event.author.name}`,
@@ -105,7 +105,7 @@ const event: {
     const event: EventType = { ...def, ...body };
     for (const key in event) (e as any)[key] = event[key as keyof EventType];
     await e.save();
-    await e.populate([`author`, `registered`]);
+    await e.populate([`author`, `registered`, `participated`]);
     res.json(e);
     if (e?.eventId) {
       const startTime = new Date(e.date);

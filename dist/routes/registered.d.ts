@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { MethodsType } from "../types/types";
-declare const participants: {
+declare const registered: {
     [name in MethodsType]?: RequestHandler;
 };
-export = participants;
+export = registered;

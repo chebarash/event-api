@@ -31,7 +31,7 @@ const event = {
             date[`$lte`] = new Date(lte);
         res.json(yield events_1.default.find({ date })
             .sort({ date: 1 })
-            .populate([`author`, `participants`])
+            .populate([`author`, `registered`])
             .lean()
             .exec());
     }),
@@ -65,7 +65,7 @@ const event = {
                 },
             });
             body.eventId = id;
-            const event = yield (yield new events_1.default(body).save()).populate([`author`, `participants`]);
+            const event = yield (yield new events_1.default(body).save()).populate([`author`, `registered`]);
             yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}`, {
                 reply_markup: {
                     inline_keyboard: [
@@ -101,7 +101,7 @@ const event = {
         for (const key in event)
             e[key] = event[key];
         yield e.save();
-        yield e.populate([`author`, `participants`]);
+        yield e.populate([`author`, `registered`]);
         res.json(e);
         if (e === null || e === void 0 ? void 0 : e.eventId) {
             const startTime = new Date(e.date);
@@ -120,7 +120,7 @@ const event = {
                     useDefault: false,
                     overrides: [{ method: "popup", minutes: 30 }],
                 },
-                attendees: e.participants.map(({ email }) => ({ email })),
+                attendees: e.registered.map(({ email }) => ({ email })),
                 guestsCanInviteOthers: false,
                 guestsCanSeeOtherGuests: false,
                 status: e.cancelled ? `cancelled` : `confirmed`,

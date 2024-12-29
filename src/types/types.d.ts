@@ -45,7 +45,8 @@ export type EventType = {
   duration: number;
   shares: number;
   private: boolean;
-  participants: Array<UserType>;
+  registered: Array<UserType>;
+  participated: Array<UserType>;
   hashtags: Array<string>;
   eventId: string;
   spots?: number;

@@ -12,17 +12,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const events_1 = __importDefault(require("../models/events"));
+const bot_1 = __importDefault(require("../bot"));
 const axios_1 = __importDefault(require("axios"));
-const registration = {
-    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, query: { _id, registered } }, res) {
+const registered = {
+    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { _id }, user }, res) {
+        if (!user)
+            return res.status(401).json({ message: "Unauthorized" });
+        const event = yield events_1.default.findOne({ _id }).populate("registered");
+        if (!event)
+            return res.status(404).json({ message: "Event not found" });
+        if (![
+            ...user.clubs.map((club) => `${club._id}`),
+            `${user._id}`,
+        ].includes(`${event.author}`))
+            return res.status(403).json({ message: "Forbidden" });
+        yield bot_1.default.telegram.sendMessage(user.id, `<b>Registered to ${event.title}:</b>\n${event.registered
+            .map(({ name, email, id }, i) => `<b>${i + 1}.</b> <code>${id}</code> ${name} (${email})`)
+            .join("\n")}`, { parse_mode: "HTML" });
+        return res.json({ ok: true });
+    }),
+    post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body: { _id, registered } }, res) {
         if (!user)
             return res.json([]);
         if (!_id)
             return res.json([]);
         const event = yield events_1.default.findOneAndUpdate({ _id }, registered
-            ? { $pull: { participants: user._id } }
-            : { $addToSet: { participants: user._id } }, { new: true, useFindAndModify: false })
-            .populate([`author`, `participants`])
+            ? { $pull: { registered: user._id } }
+            : { $addToSet: { registered: user._id } }, { new: true, useFindAndModify: false })
+            .populate([`author`, `registered`])
             .exec();
         res.json(event);
         if (event === null || event === void 0 ? void 0 : event.eventId) {
@@ -42,7 +59,7 @@ const registration = {
                     useDefault: false,
                     overrides: [{ method: "popup", minutes: 30 }],
                 },
-                attendees: event.participants.map(({ email }) => ({ email })),
+                attendees: event.registered.map(({ email }) => ({ email })),
                 guestsCanInviteOthers: false,
                 guestsCanSeeOtherGuests: false,
                 status: event.cancelled ? `cancelled` : `confirmed`,
@@ -55,4 +72,4 @@ const registration = {
         }
     }),
 };
-module.exports = registration;
+module.exports = registered;

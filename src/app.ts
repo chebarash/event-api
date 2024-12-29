@@ -1,8 +1,7 @@
 import { RequestHandler, Router } from "express";
 import { MethodsType } from "./types/types";
 
-import participants from "./routes/participants";
-import registration from "./routes/registration";
+import registered from "./routes/registered";
 import callback from "./routes/callback";
 import event from "./routes/event";
 import photo from "./routes/photo";
@@ -22,14 +21,13 @@ const routes: Array<
   ]
 > = [
   [`/`, index],
+  [`/user`, user],
   [`/auth`, auth],
   [`/clubs`, clubs],
-  [`/callback`, callback],
   [`/event`, event],
-  [`/registration`, registration],
-  [`/user`, user],
+  [`/callback`, callback],
   [`/photo/:fileId`, photo],
-  [`/participants`, participants],
+  [`/registered`, registered],
 ];
 
 for (const [route, methods] of routes) {

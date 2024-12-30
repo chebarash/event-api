@@ -4,6 +4,7 @@ import { EventType } from "../types/types";
 const eventSchema = new Schema<EventType>({
   title: { type: String, required: true },
   picture: { type: String, required: true },
+  color: { type: String, required: true },
   description: { type: String, required: true },
   author: {
     type: Schema.Types.ObjectId,

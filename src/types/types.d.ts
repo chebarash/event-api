@@ -37,6 +37,7 @@ export type EventType = {
   _id: ObjectId;
   title: string;
   picture: string;
+  color: string;
   description: string;
   author: UserType | ClubType;
   authorModel: `users` | `clubs`;

@@ -16,10 +16,13 @@ const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL } = process.env;
 const auth = {
     get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!req.query.id || (yield users_1.default.findOne({ id: req.query.id })))
-            return res.redirect(`https://t.me/pueventbot?start=${req.query.option}`);
+            return res.redirect(typeof req.query.from == `string`
+                ? req.query.from
+                : `https://t.me/pueventbot?start=${req.query.option}`);
         return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${GOOGLE_CALLBACK_URL}`)}&access_type=offline&response_type=code&state=${encodeURIComponent(JSON.stringify({
             id: req.query.id,
             option: req.query.option,
+            from: req.query.from,
         }))}&scope=openid%20email%20profile`);
     }),
 };

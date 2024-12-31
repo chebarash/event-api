@@ -9,7 +9,11 @@ const auth: {
 } = {
   get: async (req, res) => {
     if (!req.query.id || (await Users.findOne({ id: req.query.id })))
-      return res.redirect(`https://t.me/pueventbot?start=${req.query.option}`);
+      return res.redirect(
+        typeof req.query.from == `string`
+          ? req.query.from
+          : `https://t.me/pueventbot?start=${req.query.option}`
+      );
     return res.redirect(
       `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
         `${GOOGLE_CALLBACK_URL}`
@@ -17,6 +21,7 @@ const auth: {
         JSON.stringify({
           id: req.query.id,
           option: req.query.option,
+          from: req.query.from,
         })
       )}&scope=openid%20email%20profile`
     );

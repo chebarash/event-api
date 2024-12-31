@@ -35,7 +35,7 @@ const callback: {
       family_name: string;
     }>(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
 
-    const { id, option }: { [name: string]: string } =
+    const { id, option, from }: { [name: string]: string } =
       typeof state == `string` ? JSON.parse(state) : {};
 
     const old = await Users.findOne({ email });
@@ -68,7 +68,7 @@ const callback: {
       },
       { upsert: true }
     );
-    return res.redirect(`https://t.me/pueventbot?start=${option}`);
+    return res.redirect(from || `https://t.me/pueventbot?start=${option}`);
   },
 };
 

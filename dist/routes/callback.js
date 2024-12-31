@@ -26,7 +26,7 @@ const callback = {
             grant_type: `authorization_code`,
         });
         const { data: { email, picture, given_name, family_name }, } = yield axios_1.default.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
-        const { id, option } = typeof state == `string` ? JSON.parse(state) : {};
+        const { id, option, from } = typeof state == `string` ? JSON.parse(state) : {};
         const old = yield users_1.default.findOne({ email });
         if (old) {
             try {
@@ -48,7 +48,7 @@ const callback = {
             email,
             id,
         }, { upsert: true });
-        return res.redirect(`https://t.me/pueventbot?start=${option}`);
+        return res.redirect(from || `https://t.me/pueventbot?start=${option}`);
     }),
 };
 module.exports = callback;

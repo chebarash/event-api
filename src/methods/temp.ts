@@ -8,7 +8,7 @@ import { MessageEntity } from "telegraf/typings/core/types/typegram";
 export const tempMethod = (bot: Telegraf<MyContext>) => {
   bot.use(async (ctx, next) => {
     try {
-      if (ctx.user.organizer || ctx.user.clubs.length) await next();
+      if (ctx.user.clubs.length) await next();
     } catch (e) {
       await error(ctx, e);
     }

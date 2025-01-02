@@ -30,7 +30,7 @@ const event: {
   },
   post: async ({ user, admin, body }, res) => {
     try {
-      if (!user?.organizer && !user?.clubs.length)
+      if (!user?.clubs.length)
         return res.status(500).json({ message: `You are not organizer` });
       const startTime = new Date(body.date);
       const endTime = new Date(startTime.getTime() + body.duration);
@@ -91,15 +91,14 @@ const event: {
     }
   },
   put: async ({ user, admin, body }, res) => {
-    if (!user?.organizer && !user?.clubs.length)
+    if (!user?.clubs.length)
       return res.status(500).json({ message: `You are not organizer` });
     const e = await Events.findById(body._id).exec();
     if (!e) return res.status(500).json({ message: `Event not found` });
     if (
-      ![
-        ...user.clubs.map((club: { _id: string }) => `${club._id}`),
-        `${user._id}`,
-      ].includes(`${e.author}`)
+      !user.clubs
+        .map(({ _id }: { _id: string }) => `${_id}`)
+        .includes(`${e.author}`)
     )
       return res.status(403).json({ message: "Forbidden" });
     const event: EventType = { ...def, ...body };

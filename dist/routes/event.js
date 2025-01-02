@@ -37,7 +37,7 @@ const event = {
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body }, res) {
         try {
-            if (!(user === null || user === void 0 ? void 0 : user.organizer) && !(user === null || user === void 0 ? void 0 : user.clubs.length))
+            if (!(user === null || user === void 0 ? void 0 : user.clubs.length))
                 return res.status(500).json({ message: `You are not organizer` });
             const startTime = new Date(body.date);
             const endTime = new Date(startTime.getTime() + body.duration);
@@ -87,15 +87,14 @@ const event = {
         }
     }),
     put: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body }, res) {
-        if (!(user === null || user === void 0 ? void 0 : user.organizer) && !(user === null || user === void 0 ? void 0 : user.clubs.length))
+        if (!(user === null || user === void 0 ? void 0 : user.clubs.length))
             return res.status(500).json({ message: `You are not organizer` });
         const e = yield events_1.default.findById(body._id).exec();
         if (!e)
             return res.status(500).json({ message: `Event not found` });
-        if (![
-            ...user.clubs.map((club) => `${club._id}`),
-            `${user._id}`,
-        ].includes(`${e.author}`))
+        if (!user.clubs
+            .map(({ _id }) => `${_id}`)
+            .includes(`${e.author}`))
             return res.status(403).json({ message: "Forbidden" });
         const event = Object.assign(Object.assign({}, def), body);
         for (const key in event)

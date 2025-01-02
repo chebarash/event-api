@@ -12,10 +12,9 @@ const registered: {
     const event = await Events.findOne({ _id }).populate("registered");
     if (!event) return res.status(404).json({ message: "Event not found" });
     if (
-      ![
-        ...user.clubs.map((club: { _id: string }) => `${club._id}`),
-        `${user._id}`,
-      ].includes(`${event.author}`)
+      !user.clubs
+        .map(({ _id }: { _id: string }) => `${_id}`)
+        .includes(`${event.author}`)
     )
       return res.status(403).json({ message: "Forbidden" });
     await bot.telegram.sendMessage(

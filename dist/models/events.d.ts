@@ -6,8 +6,7 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     picture: string;
     color: string;
     description: string;
-    author: import("../types/types").UserType | import("../types/types").ClubType;
-    authorModel: `users` | `clubs`;
+    author: import("../types/types").ClubType;
     date: Date;
     venue: string;
     duration: number;

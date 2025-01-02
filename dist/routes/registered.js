@@ -21,10 +21,9 @@ const registered = {
         const event = yield events_1.default.findOne({ _id }).populate("registered");
         if (!event)
             return res.status(404).json({ message: "Event not found" });
-        if (![
-            ...user.clubs.map((club) => `${club._id}`),
-            `${user._id}`,
-        ].includes(`${event.author}`))
+        if (!user.clubs
+            .map(({ _id }) => `${_id}`)
+            .includes(`${event.author}`))
             return res.status(403).json({ message: "Forbidden" });
         yield bot_1.default.telegram.sendMessage(user.id, `<b>Registered to ${event.title}:</b>\n${event.registered
             .map(({ name, email, id }, i) => `<b>${i + 1}.</b> <code>${id}</code> ${name} (${email})`)

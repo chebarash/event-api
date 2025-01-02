@@ -6,7 +6,6 @@ const usersSchema = new Schema<UserType>({
   picture: { type: String },
   email: { type: String, required: true, unique: true },
   id: { type: Number, required: true, unique: true },
-  organizer: { type: Boolean, default: false },
   member: [{ type: Schema.Types.ObjectId, ref: `clubs` }],
   clubs: [{ type: Schema.Types.ObjectId, ref: `clubs`, default: [] }],
   phone: { type: String },

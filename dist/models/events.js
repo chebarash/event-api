@@ -6,12 +6,7 @@ const eventSchema = new mongoose_1.Schema({
     picture: { type: String, required: true },
     color: { type: String, required: true },
     description: { type: String, required: true },
-    author: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        refPath: "authorModel",
-        required: true,
-    },
-    authorModel: { type: String, enum: [`users`, `clubs`], required: true },
+    author: { type: mongoose_1.Schema.Types.ObjectId, ref: `clubs`, required: true },
     date: { type: Date, required: true },
     venue: { type: String, required: true },
     duration: { type: Number, required: true },

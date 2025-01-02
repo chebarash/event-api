@@ -19,7 +19,7 @@ const filters_1 = require("telegraf/filters");
 const tempMethod = (bot) => {
     bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            if (ctx.user.organizer || ctx.user.clubs.length)
+            if (ctx.user.clubs.length)
                 yield next();
         }
         catch (e) {

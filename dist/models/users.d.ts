@@ -6,7 +6,6 @@ declare const Users: import("mongoose").Model<UserType, {}, {}, {}, import("mong
     picture?: string;
     email: string;
     id: number;
-    organizer: boolean;
     member: Array<import("../types/types").ClubType>;
     clubs: Array<import("../types/types").ClubType>;
     phone?: string;

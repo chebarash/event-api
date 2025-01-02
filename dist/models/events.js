@@ -19,6 +19,10 @@ const eventSchema = new mongoose_1.Schema({
     shares: { type: Number, default: 0 },
     private: { type: Boolean, required: true, default: false },
     eventId: { type: String, required: true },
+    notification: {
+        pre: { type: Boolean, default: false },
+        post: { type: Boolean, default: false },
+    },
     external: { type: String },
     registered: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `users`, default: [] }],
     participated: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `users`, default: [] }],

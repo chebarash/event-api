@@ -8,6 +8,7 @@ const clubsSchema = new Schema<ClubType>({
   links: { type: [{ url: String, text: String }], required: true, default: [] },
   cover: { type: String, required: true },
   hidden: { type: Boolean, required: true, default: false },
+  leader: { type: Schema.Types.ObjectId, ref: `users`, required: true },
 });
 
 const Clubs = model<ClubType>(`clubs`, clubsSchema);

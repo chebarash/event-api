@@ -16,6 +16,7 @@ export type ClubType = {
   links: Array<{ url: string; text: string }>;
   cover: string;
   hidden: boolean;
+  leader: UserType;
 } & Document;
 
 export type UserType = {
@@ -48,6 +49,10 @@ export type EventType = {
   participated: Array<UserType>;
   hashtags: Array<string>;
   eventId: string;
+  notification: {
+    pre: boolean;
+    post: boolean;
+  };
   spots?: number;
   deadline?: Date;
   external?: string;

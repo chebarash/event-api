@@ -19,6 +19,10 @@ const eventSchema = new Schema<EventType>({
   shares: { type: Number, default: 0 },
   private: { type: Boolean, required: true, default: false },
   eventId: { type: String, required: true },
+  notification: {
+    pre: { type: Boolean, default: false },
+    post: { type: Boolean, default: false },
+  },
   external: { type: String },
   registered: [{ type: Schema.Types.ObjectId, ref: `users`, default: [] }],
   participated: [{ type: Schema.Types.ObjectId, ref: `users`, default: [] }],

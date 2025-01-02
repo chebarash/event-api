@@ -101,7 +101,8 @@ const event: {
         .includes(`${e.author}`)
     )
       return res.status(403).json({ message: "Forbidden" });
-    const event: EventType = { ...def, ...body };
+    const { notification, ...data } = body;
+    const event: EventType = { ...def, ...data };
     for (const key in event) (e as any)[key] = event[key as keyof EventType];
     await e.save();
     await e.populate([`author`, `registered`, `participated`]);

@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 const express_1 = require("express");
+const notification_1 = __importDefault(require("./routes/notification"));
 const participated_1 = __importDefault(require("./routes/participated"));
 const registered_1 = __importDefault(require("./routes/registered"));
 const callback_1 = __importDefault(require("./routes/callback"));
@@ -32,6 +33,7 @@ const routes = [
     [`/photo/:fileId`, photo_1.default],
     [`/registered`, registered_1.default],
     [`/participated`, participated_1.default],
+    [`/notification`, notification_1.default],
 ];
 for (const [route, methods] of routes) {
     for (const method in methods) {

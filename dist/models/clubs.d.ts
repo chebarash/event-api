@@ -11,6 +11,7 @@ declare const Clubs: import("mongoose").Model<ClubType, {}, {}, {}, import("mong
     }>;
     cover: string;
     hidden: boolean;
+    leader: import("../types/types").UserType;
 } & import("mongoose").Document<unknown, any, any> & Required<{
     _id: Schema.Types.ObjectId;
 }>, any>;

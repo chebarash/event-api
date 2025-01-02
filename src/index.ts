@@ -76,7 +76,10 @@ app.use(async (req, res, next) => {
 
     const { authorization } = req.headers;
     if (authorization) {
-      const user = await Users.findOne({ id: authorization }).populate(`clubs`);
+      const user = await Users.findOne({ id: authorization }).populate([
+        `clubs`,
+        `member`,
+      ]);
       if (user) req.user = user;
     }
 

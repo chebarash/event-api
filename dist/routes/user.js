@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const user = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user }, res) {
         if (!user)
-            return res.status(500).json({ message: `Login to register` });
+            return res.status(401).json({ message: `Login to register` });
         return res.json(user);
     }),
 };

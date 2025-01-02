@@ -61,7 +61,10 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         req.admin = admin;
         const { authorization } = req.headers;
         if (authorization) {
-            const user = yield users_1.default.findOne({ id: authorization }).populate(`clubs`);
+            const user = yield users_1.default.findOne({ id: authorization }).populate([
+                `clubs`,
+                `member`,
+            ]);
             if (user)
                 req.user = user;
         }

@@ -6,7 +6,7 @@ const usersSchema = new mongoose_1.Schema({
     picture: { type: String },
     email: { type: String, required: true, unique: true },
     id: { type: Number, required: true, unique: true },
-    member: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `clubs` }],
+    member: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `clubs`, default: [] }],
     clubs: [{ type: mongoose_1.Schema.Types.ObjectId, ref: `clubs`, default: [] }],
     phone: { type: String },
     joined: { type: Boolean, default: false, required: true },

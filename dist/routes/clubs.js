@@ -13,16 +13,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const users_1 = __importDefault(require("../models/users"));
 const clubs_1 = __importDefault(require("../models/clubs"));
+const events_1 = __importDefault(require("../models/events"));
 const clubs = {
-    get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const clubs = yield clubs_1.default.find({ hidden: false });
+    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { _id } }, res) {
+        const clubs = yield clubs_1.default.find().populate(`leader`).lean();
         const clubList = yield Promise.all(clubs.map((club) => __awaiter(void 0, void 0, void 0, function* () {
-            const membersCount = yield users_1.default.countDocuments({
-                member: club._id,
-            });
-            return { name: club.name, members: membersCount };
+            return (Object.assign(Object.assign({}, club), { members: yield users_1.default.countDocuments({
+                    member: club._id,
+                }) }));
         })));
-        res.json(clubList.sort((a, b) => b.members - a.members));
+        const topClubs = clubList.sort((a, b) => b.members - a.members);
+        if (!_id)
+            return res.json(topClubs);
+        const index = topClubs.findIndex((club) => club._id.toString() === _id);
+        if (index === -1)
+            return res.status(404).json({ message: `Club not found` });
+        const events = yield events_1.default.find({ author: _id }).lean();
+        res.json(Object.assign(Object.assign({}, topClubs[index]), { rank: index + 1, events }));
+    }),
+    post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ body: { _id }, user }, res) {
+        if (!user)
+            return res.status(401).json({ message: `Login to join` });
+        if (!_id)
+            return res.status(400).json({ message: `Club not found` });
+        const club = yield clubs_1.default.findOne({ _id });
+        if (!club)
+            return res.status(404).json({ message: `Club not found` });
+        const isMember = user.member.some((club) => `${club._id}` === _id);
+        yield user.updateOne(isMember ? { $pull: { member: _id } } : { $addToSet: { member: _id } });
+        res.json(yield users_1.default.findById(user._id).populate([`clubs`, `member`]).lean());
     }),
 };
 module.exports = clubs;

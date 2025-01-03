@@ -18,8 +18,21 @@ const index = {
     get: (_, res) => __awaiter(void 0, void 0, void 0, function* () {
         const users = yield users_1.default.countDocuments();
         const clubs = yield clubs_1.default.countDocuments({ hidden: false });
-        const events = yield events_1.default.countDocuments();
-        res.json({ users, clubs, events });
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        const events = yield events_1.default.find({ date: { $gte: date } })
+            .sort({ date: 1 })
+            .populate([`author`, `registered`, `participated`])
+            .lean()
+            .exec();
+        const foryou = {
+            title: `Chimgan Winter Trip`,
+            subtitle: `by Travel Club`,
+            button: `Get Ticket`,
+            image: `http://event-api.chebarash.uz/photo/AgACAgIAAxkBAAJAAmd0MXNLcZKhUzOELJz-YHhCvqlpAALS5TEb2MmgS46omyRRxvrEAQADAgADeQADNgQ`,
+            link: `/events/6763c2141438c4cd016b4c60`,
+        };
+        res.json({ users, clubs, events, foryou });
     }),
 };
 module.exports = index;

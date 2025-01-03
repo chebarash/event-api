@@ -16,10 +16,17 @@ const def = {
 const event: {
   [name in MethodsType]?: RequestHandler;
 } = {
-  get: async ({ query: { gte, lte } }, res) => {
+  get: async ({ query: { gte, lte, _id } }, res) => {
     const date: { $gte?: Date; $lte?: Date } = {};
     if (gte) date[`$gte`] = new Date(gte as string);
     if (lte) date[`$lte`] = new Date(lte as string);
+    if (_id)
+      return res.json(
+        await Events.findById(_id)
+          .populate([`author`, `registered`, `participated`])
+          .lean()
+          .exec()
+      );
     res.json(
       await Events.find({ date })
         .sort({ date: 1 })

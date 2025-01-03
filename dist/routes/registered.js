@@ -58,7 +58,7 @@ const registered = {
                     useDefault: false,
                     overrides: [{ method: "popup", minutes: 30 }],
                 },
-                attendees: event.registered.map(({ email }) => ({ email })),
+                attendees: event.registered,
                 guestsCanInviteOthers: false,
                 guestsCanSeeOtherGuests: false,
                 status: event.cancelled ? `cancelled` : `confirmed`,

@@ -35,8 +35,8 @@ const notification: {
               inline_keyboard: [
                 [
                   {
-                    text: `Open in Event`,
-                    url: `https://t.me/pueventbot/event?startapp=${event._id}`,
+                    text: `Ticket`,
+                    url: `https://t.me/pueventbot/event?startapp=tickets${event._id}`,
                   },
                 ],
               ],

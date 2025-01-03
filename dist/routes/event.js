@@ -34,12 +34,17 @@ const def = {
     button: undefined,
 };
 const event = {
-    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { gte, lte } }, res) {
+    get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { gte, lte, _id } }, res) {
         const date = {};
         if (gte)
             date[`$gte`] = new Date(gte);
         if (lte)
             date[`$lte`] = new Date(lte);
+        if (_id)
+            return res.json(yield events_1.default.findById(_id)
+                .populate([`author`, `registered`, `participated`])
+                .lean()
+                .exec());
         res.json(yield events_1.default.find({ date })
             .sort({ date: 1 })
             .populate([`author`, `registered`, `participated`])

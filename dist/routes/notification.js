@@ -19,10 +19,12 @@ const notification = {
         const time30 = new Date(currentTime.getTime() + 30 * 60 * 1000);
         const preEvent = yield events_1.default.find({
             date: { $lte: time30 },
+            cancelled: false,
             "notification.pre": false,
         }).populate(`registered`);
         const postEvent = yield events_1.default.find({
             date: { $lte: currentTime },
+            cancelled: false,
             "notification.post": false,
         }).populate({
             path: `author`,
@@ -41,7 +43,7 @@ const notification = {
                             inline_keyboard: [
                                 [
                                     {
-                                        text: event.button || `Open in Event`,
+                                        text: `Open in Event`,
                                         url: `https://t.me/pueventbot/event?startapp=${event._id}`,
                                     },
                                 ],
@@ -74,7 +76,19 @@ const notification = {
                     const linkString = Object.entries(link)
                         .map(([key, value]) => `${key}=${encodeURIComponent(`${value}`)}`)
                         .join("&");
-                    yield bot_1.default.telegram.sendMessage(event.author.leader.id, `Just a quick reminder to fill out the <a href="https://docs.google.com/forms/d/e/1FAIpQLSeuddmhm0Og2h2B8uHxBpEhbJrjKb4i-nzzIEEpwch0f02tAw/viewform?usp=pp_url&${linkString}">event report form</a> for ${event.title}.`, { parse_mode: `HTML` });
+                    yield bot_1.default.telegram.sendMessage(event.author.leader.id, `Just a quick reminder to fill out the <a href="https://docs.google.com/forms/d/e/1FAIpQLSeuddmhm0Og2h2B8uHxBpEhbJrjKb4i-nzzIEEpwch0f02tAw/viewform?usp=pp_url&${linkString}">event report form</a> for <b>${event.title}</b>.`, {
+                        parse_mode: `HTML`,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: `Open in Event`,
+                                        url: `https://t.me/pueventbot/event?startapp=${event._id}`,
+                                    },
+                                ],
+                            ],
+                        },
+                    });
                 }
                 catch (e) {
                     console.log(e);

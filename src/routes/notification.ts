@@ -11,10 +11,12 @@ const notification: {
     const time30 = new Date(currentTime.getTime() + 30 * 60 * 1000);
     const preEvent = await Events.find({
       date: { $lte: time30 },
+      cancelled: false,
       "notification.pre": false,
     }).populate(`registered`);
     const postEvent = await Events.find({
       date: { $lte: currentTime },
+      cancelled: false,
       "notification.post": false,
     }).populate({
       path: `author`,
@@ -33,7 +35,7 @@ const notification: {
               inline_keyboard: [
                 [
                   {
-                    text: event.button || `Open in Event`,
+                    text: `Open in Event`,
                     url: `https://t.me/pueventbot/event?startapp=${event._id}`,
                   },
                 ],
@@ -68,8 +70,20 @@ const notification: {
             .join("&");
           await bot.telegram.sendMessage(
             event.author.leader.id,
-            `Just a quick reminder to fill out the <a href="https://docs.google.com/forms/d/e/1FAIpQLSeuddmhm0Og2h2B8uHxBpEhbJrjKb4i-nzzIEEpwch0f02tAw/viewform?usp=pp_url&${linkString}">event report form</a> for ${event.title}.`,
-            { parse_mode: `HTML` }
+            `Just a quick reminder to fill out the <a href="https://docs.google.com/forms/d/e/1FAIpQLSeuddmhm0Og2h2B8uHxBpEhbJrjKb4i-nzzIEEpwch0f02tAw/viewform?usp=pp_url&${linkString}">event report form</a> for <b>${event.title}</b>.`,
+            {
+              parse_mode: `HTML`,
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: `Open in Event`,
+                      url: `https://t.me/pueventbot/event?startapp=${event._id}`,
+                    },
+                  ],
+                ],
+              },
+            }
           );
         } catch (e) {
           console.log(e);

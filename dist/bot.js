@@ -14,15 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const telegraf_1 = require("telegraf");
 const filters_1 = require("telegraf/filters");
 const users_1 = __importDefault(require("./models/users"));
-const clubs_1 = __importDefault(require("./models/clubs"));
 const temp_1 = require("./methods/temp");
 const phone_1 = __importDefault(require("./methods/phone"));
 const contact_1 = __importDefault(require("./methods/contact"));
-const clubs_2 = __importDefault(require("./methods/clubs"));
 const accept_1 = __importDefault(require("./methods/accept"));
 const inline_1 = __importDefault(require("./methods/inline"));
 const result_1 = __importDefault(require("./methods/result"));
-const club_1 = __importDefault(require("./methods/club"));
 const login_1 = __importDefault(require("./methods/login"));
 const start_1 = __importDefault(require("./methods/start"));
 const error_1 = __importDefault(require("./methods/error"));
@@ -55,12 +52,6 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     ctx.user = res;
     if (!ctx.user.phone)
         return yield (0, phone_1.default)(ctx);
-    if (option === `clubs`)
-        return yield (0, clubs_2.default)(ctx);
-    if (option === null || option === void 0 ? void 0 : option.startsWith(`clb-`)) {
-        const username = option.replace(`clb-`, ``);
-        return yield (0, club_1.default)(ctx, { username });
-    }
     yield (0, accept_1.default)(ctx);
     return yield (0, start_1.default)(ctx);
 }));
@@ -91,33 +82,6 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (((_a = ctx.chat) === null || _a === void 0 ? void 0 : _a.type) != `private`)
         return;
     yield next();
-}));
-bot.action(/^clb/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    const _id = ctx.callbackQuery.data.split(`//`)[1];
-    const club = yield clubs_1.default.findOne({ _id });
-    if (!club)
-        return yield ctx.answerCbQuery(`Club not found.`);
-    const includes = ctx.user.member.map((_id) => `${_id}`).includes(_id);
-    yield ctx.user.updateOne(includes ? { $pull: { member: _id } } : { $addToSet: { member: _id } });
-    yield ctx.answerCbQuery(includes ? `You left the club.` : `You joined the club.`);
-    yield ctx.editMessageReplyMarkup({
-        inline_keyboard: [
-            [{ text: includes ? `Join` : `Leave`, callback_data: `clb//${_id}` }],
-            [{ text: `All Clubs`, callback_data: `clubs` }],
-        ],
-    });
-}));
-bot.command(`clubs`, clubs_2.default);
-bot.action(`clubs`, clubs_2.default);
-bot.action(/^club/g, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    const _id = ctx.callbackQuery.data.split(`//`)[1];
-    (0, club_1.default)(ctx, { _id });
-}));
-bot.command(`clb`, (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    const clubs = (yield clubs_1.default.find({}))
-        .map(({ username }) => `https://t.me/pueventbot?start=clb-${username}`)
-        .join(`\n`);
-    yield ctx.reply(`Clubs:\n${clubs}`);
 }));
 bot.command(`whoami`, (ctx) => ctx.reply(`<pre><code class="language-json">${JSON.stringify(ctx.user, null, 2)}</code></pre>`, { parse_mode: `HTML` }));
 (0, temp_1.tempMethod)(bot);

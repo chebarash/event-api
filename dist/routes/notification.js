@@ -44,7 +44,7 @@ const notification = {
                                 [
                                     {
                                         text: `Ticket`,
-                                        url: `https://t.me/pueventbot/event?startapp=tickets${event._id}`,
+                                        url: `https://t.me/pueventbot/event?startapp=ticket${event._id}`,
                                     },
                                 ],
                             ],

@@ -60,6 +60,11 @@ export type EventType = {
   template?: string;
   button?: string;
   cancelled: boolean;
+  voting?: {
+    title: string;
+    options: Array<string>;
+    votes: Array<{ user: UserType; option: string }>;
+  };
 } & Document;
 
 export type MethodsType =

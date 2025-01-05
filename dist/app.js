@@ -21,12 +21,14 @@ const photo_1 = __importDefault(require("./routes/photo"));
 const clubs_1 = __importDefault(require("./routes/clubs"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const user_1 = __importDefault(require("./routes/user"));
+const vote_1 = __importDefault(require("./routes/vote"));
 const routes_1 = __importDefault(require("./routes"));
 const appRouter = (0, express_1.Router)();
 const routes = [
     [`/`, routes_1.default],
     [`/user`, user_1.default],
     [`/auth`, auth_1.default],
+    [`/vote`, vote_1.default],
     [`/clubs`, clubs_1.default],
     [`/event`, event_1.default],
     [`/callback`, callback_1.default],

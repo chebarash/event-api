@@ -10,6 +10,7 @@ import photo from "./routes/photo";
 import clubs from "./routes/clubs";
 import auth from "./routes/auth";
 import user from "./routes/user";
+import vote from "./routes/vote";
 import index from "./routes";
 
 const appRouter = Router();
@@ -25,6 +26,7 @@ const routes: Array<
   [`/`, index],
   [`/user`, user],
   [`/auth`, auth],
+  [`/vote`, vote],
   [`/clubs`, clubs],
   [`/event`, event],
   [`/callback`, callback],

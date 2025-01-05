@@ -17,8 +17,6 @@ const contact = async (
   const { id } = ctx.from;
   const res = await Users.findOne({ id });
   if (!res) return await login(ctx);
-  if (!phone_number.startsWith(`+998`))
-    return await ctx.reply(`Please provide a valid phone number.`);
   res.phone = phone_number;
   await res.save();
   ctx.user = res;

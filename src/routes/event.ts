@@ -11,6 +11,7 @@ const def = {
   content: undefined,
   template: undefined,
   button: undefined,
+  voting: undefined,
 };
 
 const event: {

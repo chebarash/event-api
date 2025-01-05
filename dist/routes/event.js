@@ -32,6 +32,7 @@ const def = {
     content: undefined,
     template: undefined,
     button: undefined,
+    voting: undefined,
 };
 const event = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { gte, lte, _id } }, res) {

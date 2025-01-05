@@ -24,8 +24,6 @@ const contact = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     const res = yield users_1.default.findOne({ id });
     if (!res)
         return yield (0, login_1.default)(ctx);
-    if (!phone_number.startsWith(`+998`))
-        return yield ctx.reply(`Please provide a valid phone number.`);
     res.phone = phone_number;
     yield res.save();
     ctx.user = res;

@@ -30,6 +30,13 @@ const eventSchema = new Schema<EventType>({
   deadline: { type: Date },
   hashtags: [{ type: String, default: [] }],
   cancelled: { type: Boolean, default: false },
+  voting: {
+    title: String,
+    options: [String],
+    votes: [
+      { user: { type: Schema.Types.ObjectId, ref: `users` }, option: String },
+    ],
+  },
 });
 
 const Events = model<EventType>(`events`, eventSchema);

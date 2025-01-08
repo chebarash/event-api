@@ -27,6 +27,8 @@ const callback = {
         });
         const { data: { email, picture, given_name, family_name }, } = yield axios_1.default.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
         const { id, option, from } = typeof state == `string` ? JSON.parse(state) : {};
+        if (!email.endsWith(`@newuu.uz`) && option != `external`)
+            return res.redirect(`https://t.me/pueventbot?start=notnewuu`);
         const old = yield users_1.default.findOne({ email });
         if (old) {
             try {

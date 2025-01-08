@@ -38,6 +38,9 @@ const callback: {
     const { id, option, from }: { [name: string]: string } =
       typeof state == `string` ? JSON.parse(state) : {};
 
+    if (!email.endsWith(`@newuu.uz`) && option != `external`)
+      return res.redirect(`https://t.me/pueventbot?start=notnewuu`);
+
     const old = await Users.findOne({ email });
     if (old) {
       try {

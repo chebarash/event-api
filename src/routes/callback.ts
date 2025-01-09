@@ -60,7 +60,7 @@ const callback: {
     await Users.updateOne(
       { email },
       {
-        name: [given_name, family_name]
+        name: [given_name || ``, family_name || ``]
           .map(
             (v) => v.charAt(0).toUpperCase() + v.slice(1).toLocaleLowerCase()
           )

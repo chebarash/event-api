@@ -25,9 +25,15 @@ const registered = {
             .map(({ _id }) => `${_id}`)
             .includes(`${event.author}`))
             return res.status(403).json({ message: "Forbidden" });
-        yield bot_1.default.telegram.sendMessage(user.id, `<b>Registered to ${event.title}:</b>\n${event.registered
-            .map(({ name, email, id }, i) => `<b>${i + 1}.</b> <code>${id}</code> ${name} (${email})`)
-            .join("\n")}`, { parse_mode: "HTML" });
+        const file = event.registered.map(({ name, email, id }) => ({
+            name,
+            email,
+            id,
+        }));
+        yield bot_1.default.telegram.sendDocument(user.id, {
+            source: Buffer.from(JSON.stringify(file, null, 2)),
+            filename: `${event.title}.json`,
+        }, { caption: `Registered to ${event.title}` });
         return res.json({ ok: true });
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body: { _id, registered } }, res) {

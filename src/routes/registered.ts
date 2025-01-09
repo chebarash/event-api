@@ -17,15 +17,20 @@ const registered: {
         .includes(`${event.author}`)
     )
       return res.status(403).json({ message: "Forbidden" });
-    await bot.telegram.sendMessage(
+
+    const file = event.registered.map(({ name, email, id }) => ({
+      name,
+      email,
+      id,
+    }));
+
+    await bot.telegram.sendDocument(
       user.id,
-      `<b>Registered to ${event.title}:</b>\n${event.registered
-        .map(
-          ({ name, email, id }, i) =>
-            `<b>${i + 1}.</b> <code>${id}</code> ${name} (${email})`
-        )
-        .join("\n")}`,
-      { parse_mode: "HTML" }
+      {
+        source: Buffer.from(JSON.stringify(file, null, 2)),
+        filename: `${event.title}.json`,
+      },
+      { caption: `Registered to ${event.title}` }
     );
     return res.json({ ok: true });
   },

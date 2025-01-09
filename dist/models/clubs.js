@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const clubsSchema = new mongoose_1.Schema({
-    username: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
-    links: { type: [{ url: String, text: String }], required: true, default: [] },
+    channel: { type: String },
     cover: { type: String, required: true },
+    color: { type: String, required: true },
     hidden: { type: Boolean, required: true, default: false },
     leader: { type: mongoose_1.Schema.Types.ObjectId, ref: `users`, required: true },
 });

@@ -10,11 +10,11 @@ export type AdminType = {
 
 export type ClubType = {
   _id: ObjectId;
-  username: string;
   name: string;
   description: string;
-  links: Array<{ url: string; text: string }>;
+  channel?: string;
   cover: string;
+  color: string;
   hidden: boolean;
   leader: UserType;
 } & Document;

@@ -33,6 +33,8 @@ const clubs: {
   },
   post: async ({ body: { _id }, user }, res) => {
     if (!user) return res.status(401).json({ message: `Login to join` });
+    if (!user.email.endsWith(`@newuu.uz`))
+      return res.status(403).json({ message: `Only students can join` });
     if (!_id) return res.status(400).json({ message: `Club not found` });
     const club = await Clubs.findOne({ _id });
     if (!club) return res.status(404).json({ message: `Club not found` });
@@ -45,6 +47,35 @@ const clubs: {
     res.json(
       await Users.findById(user._id).populate([`clubs`, `member`]).lean()
     );
+  },
+  put: async ({ body, user }, res) => {
+    if (!user) return res.status(401).json({ message: `Login to join` });
+    if (!body._id) return res.status(400).json({ message: `Club not found` });
+    const club = await Clubs.findOne({ _id: body._id });
+    if (!club) return res.status(404).json({ message: `Club not found` });
+    if (`${club.leader}` !== `${user._id}`)
+      return res.status(403).json({ message: `Not a leader` });
+    await club.updateOne({
+      description: body.description,
+      channel: body.channel,
+      cover: body.cover,
+      color: body.color,
+    });
+    const clubs = await Clubs.find().populate(`leader`).lean();
+    const clubList = await Promise.all(
+      clubs.map(async (club) => ({
+        ...club,
+        members: await Users.countDocuments({
+          member: club._id,
+        }),
+      }))
+    );
+    const topClubs = clubList.sort((a, b) => b.members - a.members);
+    const index = topClubs.findIndex(
+      (club) => club._id.toString() === body._id
+    );
+    const events = await Events.find({ author: body._id }).lean();
+    res.json({ ...topClubs[index], rank: index + 1, events });
   },
 };
 

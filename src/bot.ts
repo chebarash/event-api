@@ -4,7 +4,6 @@ import { message } from "telegraf/filters";
 import { MyContext } from "./types/types";
 
 import Users from "./models/users";
-import Clubs from "./models/clubs";
 
 import { tempMethod } from "./methods/temp";
 import phoneNumber from "./methods/phone";

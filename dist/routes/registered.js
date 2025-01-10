@@ -36,13 +36,13 @@ const registered = {
         }, { caption: `Registered to ${event.title}` });
         return res.json({ ok: true });
     }),
-    post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body: { _id, registered } }, res) {
+    post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ user, admin, body: { _id, userId, registered } }, res) {
         if (!user)
             return res.json([]);
         if (!_id)
             return res.json([]);
-        const event = yield events_1.default.findOneAndUpdate({ _id }, registered
-            ? { $pull: { registered: user._id } }
+        const event = yield events_1.default.findOneAndUpdate({ _id }, registered || userId
+            ? { $pull: { registered: userId || user._id } }
             : { $addToSet: { registered: user._id } }, { new: true, useFindAndModify: false })
             .populate([`author`, `registered`, `participated`])
             .exec();

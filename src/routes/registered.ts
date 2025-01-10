@@ -34,13 +34,13 @@ const registered: {
     );
     return res.json({ ok: true });
   },
-  post: async ({ user, admin, body: { _id, registered } }, res) => {
+  post: async ({ user, admin, body: { _id, userId, registered } }, res) => {
     if (!user) return res.json([]);
     if (!_id) return res.json([]);
     const event = await Events.findOneAndUpdate(
       { _id },
-      registered
-        ? { $pull: { registered: user._id } }
+      registered || userId
+        ? { $pull: { registered: userId || user._id } }
         : { $addToSet: { registered: user._id } },
       { new: true, useFindAndModify: false }
     )

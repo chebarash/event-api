@@ -31,13 +31,35 @@ const tempMethod = (bot) => {
         yield events_1.default.deleteOne({ _id });
         yield ctx.deleteMessage();
     }));
-    const replyId = (ctx, fileId) => {
-        var _a;
-        return ctx.reply(`File ID: <pre>${fileId}</pre>`, {
-            reply_parameters: { message_id: ((_a = ctx.message) === null || _a === void 0 ? void 0 : _a.message_id) || 0 },
+    const replyId = (ctx, fileId) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b;
+        const { caption, caption_entities } = ctx.update.message;
+        if (caption) {
+            const html = toHtml(caption_entities || [], caption);
+            return yield ctx.reply("```" + fileId + "```\n\n```HTML\n" + html + "```", {
+                reply_parameters: { message_id: ((_a = ctx.message) === null || _a === void 0 ? void 0 : _a.message_id) || 0 },
+                parse_mode: "MarkdownV2",
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: `Create Event`,
+                                web_app: {
+                                    url: `https://event.chebarash.uz/events/create?${/^AgACAgIAAxkBA[A-Za-z0-9_\-]{53,70}$/.test(fileId)
+                                        ? `picture`
+                                        : `content`}=${encodeURIComponent(fileId)}&description=${encodeURIComponent(html)}`,
+                                },
+                            },
+                        ],
+                    ],
+                },
+            });
+        }
+        return yield ctx.reply(`File ID: <pre>${fileId}</pre>`, {
+            reply_parameters: { message_id: ((_b = ctx.message) === null || _b === void 0 ? void 0 : _b.message_id) || 0 },
             parse_mode: `HTML`,
         });
-    };
+    });
     bot.on((0, filters_1.message)(`photo`), (ctx) => replyId(ctx, ctx.message.photo[ctx.message.photo.length - 1].file_id));
     bot.on((0, filters_1.message)(`video`), (ctx) => replyId(ctx, ctx.message.video.file_id));
     const getTag = (entity, text) => {
@@ -69,11 +91,7 @@ const tempMethod = (bot) => {
                 return `<a href="https://t.me/${entityText.replace("@", "")}">`;
         }
     };
-    bot.on((0, filters_1.message)(`text`), (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-        const { text, entities } = ctx.message;
-        if (!entities) {
-            return text;
-        }
+    const toHtml = (entities, text) => {
         let tags = [];
         entities.forEach((entity) => {
             const startTag = getTag(entity, text);
@@ -109,6 +127,13 @@ const tempMethod = (bot) => {
         }
         if (tags.length > 0)
             html += tags[0].tag;
+        return html;
+    };
+    bot.on((0, filters_1.message)(`text`), (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+        const { text, entities } = ctx.message;
+        if (!entities)
+            return text;
+        const html = toHtml(entities, text);
         return yield ctx.reply("```HTML\n" + html + "```", {
             parse_mode: "MarkdownV2",
         });

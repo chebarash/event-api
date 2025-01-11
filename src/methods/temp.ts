@@ -1,9 +1,13 @@
 import Events from "../models/events";
 import { MyContext } from "../types/types";
 import error from "./error";
-import { Context, Telegraf } from "telegraf";
+import { Context, NarrowedContext, Telegraf } from "telegraf";
 import { message } from "telegraf/filters";
-import { MessageEntity } from "telegraf/typings/core/types/typegram";
+import {
+  Message,
+  MessageEntity,
+  Update,
+} from "telegraf/typings/core/types/typegram";
 
 export const tempMethod = (bot: Telegraf<MyContext>) => {
   bot.use(async (ctx, next) => {
@@ -20,11 +24,49 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
     await ctx.deleteMessage();
   });
 
-  const replyId = (ctx: Context, fileId: string) =>
-    ctx.reply(`File ID: <pre>${fileId}</pre>`, {
+  const replyId = async (
+    ctx: NarrowedContext<
+      MyContext,
+      Update.MessageUpdate<
+        (Record<`video`, {}> & Message.VideoMessage) | Message.PhotoMessage
+      >
+    >,
+    fileId: string
+  ) => {
+    const { caption, caption_entities } = ctx.update.message;
+    if (caption) {
+      const html = toHtml(caption_entities || [], caption);
+      return await ctx.reply(
+        "```" + fileId + "```\n\n```HTML\n" + html + "```",
+        {
+          reply_parameters: { message_id: ctx.message?.message_id || 0 },
+          parse_mode: "MarkdownV2",
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: `Create Event`,
+                  web_app: {
+                    url: `https://event.chebarash.uz/events/create?${
+                      /^AgACAgIAAxkBA[A-Za-z0-9_\-]{53,70}$/.test(fileId)
+                        ? `picture`
+                        : `content`
+                    }=${encodeURIComponent(
+                      fileId
+                    )}&description=${encodeURIComponent(html)}`,
+                  },
+                },
+              ],
+            ],
+          },
+        }
+      );
+    }
+    return await ctx.reply(`File ID: <pre>${fileId}</pre>`, {
       reply_parameters: { message_id: ctx.message?.message_id || 0 },
       parse_mode: `HTML`,
     });
+  };
 
   bot.on(message(`photo`), (ctx) =>
     replyId(ctx, ctx.message.photo[ctx.message.photo.length - 1].file_id)
@@ -76,13 +118,7 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
     }
   };
 
-  bot.on(message(`text`), async (ctx) => {
-    const { text, entities } = ctx.message;
-
-    if (!entities) {
-      return text;
-    }
-
+  const toHtml = (entities: Array<MessageEntity>, text: string) => {
     let tags: Array<{ index: number; tag: string }> = [];
 
     entities.forEach((entity) => {
@@ -119,6 +155,15 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
       html += text[i];
     }
     if (tags.length > 0) html += tags[0].tag;
+    return html;
+  };
+
+  bot.on(message(`text`), async (ctx) => {
+    const { text, entities } = ctx.message;
+
+    if (!entities) return text;
+
+    const html = toHtml(entities, text);
 
     return await ctx.reply("```HTML\n" + html + "```", {
       parse_mode: "MarkdownV2",

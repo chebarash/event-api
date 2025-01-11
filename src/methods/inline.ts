@@ -62,7 +62,6 @@ const inline = async (
   date.setDate(date.getDate() - 1);
   const data = await Events.find({
     title: { $regex: ctx.inlineQuery.query, $options: `i` },
-    date: { $gte: date },
     $or: [
       {
         private: false,
@@ -74,7 +73,7 @@ const inline = async (
       },
     ],
   })
-    .sort({ date: 1 })
+    .sort({ date: -1 })
     .populate(`author`)
     .lean()
     .exec();

@@ -51,7 +51,6 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     date.setDate(date.getDate() - 1);
     const data = yield events_1.default.find({
         title: { $regex: ctx.inlineQuery.query, $options: `i` },
-        date: { $gte: date },
         $or: [
             {
                 private: false,
@@ -63,7 +62,7 @@ const inline = (ctx) => __awaiter(void 0, void 0, void 0, function* () {
             },
         ],
     })
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .populate(`author`)
         .lean()
         .exec();

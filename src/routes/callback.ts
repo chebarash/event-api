@@ -4,8 +4,13 @@ import Users from "../models/users";
 import axios from "axios";
 import bot from "../bot";
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, GROUP } =
-  process.env;
+const {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CALLBACK_URL,
+  GOOGLE_CLIENT_SECRET,
+  GROUP,
+  ADMIN_ID,
+} = process.env;
 
 const callback: {
   [name in MethodsType]?: RequestHandler;
@@ -57,7 +62,7 @@ const callback: {
       }
     }
 
-    await Users.updateOne(
+    const user = await Users.findOneAndUpdate(
       { email },
       {
         name: [given_name || ``, family_name || ``]
@@ -69,8 +74,41 @@ const callback: {
         email,
         id,
       },
-      { upsert: true }
+      { upsert: true, new: true }
     );
+    try {
+      await bot.telegram.sendMessage(
+        parseInt(ADMIN_ID),
+        `<pre><code class="language-json">${JSON.stringify(
+          user,
+          null,
+          2
+        )}</code></pre>`,
+        {
+          parse_mode: `HTML`,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: user.name,
+                  url: `tg://user?id=${id}`,
+                },
+              ],
+            ],
+          },
+        }
+      );
+    } catch (e) {
+      await bot.telegram.sendMessage(
+        parseInt(ADMIN_ID),
+        `<pre><code class="language-json">${JSON.stringify(
+          user,
+          null,
+          2
+        )}</code></pre>`,
+        { parse_mode: `HTML` }
+      );
+    }
     return res.redirect(from || `https://t.me/pueventbot?start=${option}`);
   },
 };

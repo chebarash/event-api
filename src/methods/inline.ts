@@ -50,6 +50,18 @@ const loadTemplate = (
   return template;
 };
 
+const getTimeRemaining = (total: number): [number, string] => {
+  const minutes = Math.floor((total / 1000 / 60) % 60);
+  const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(total / (1000 * 60 * 60 * 24));
+  const list: Array<[number, string]> = [
+    [days, days > 1 ? `days` : `day`],
+    [hours, hours > 1 ? `hours` : `hour`],
+    [minutes, minutes > 1 ? `minutes` : `minute`],
+  ];
+  return list.filter(([t]) => t > 0)[0];
+};
+
 const inline = async (
   ctx: NarrowedContext<MyContext, Update.InlineQueryUpdate>
 ) => {
@@ -95,7 +107,6 @@ const inline = async (
         button,
       }): InlineQueryResult => {
         const d = new Date(date);
-        const hours = duration / (1000 * 60 * 60);
         return {
           ...(content && content.type == `video`
             ? {
@@ -128,7 +139,7 @@ const inline = async (
               timeZone: `Asia/Tashkent`,
             }),
             venue,
-            duration: `${hours} ${hours == 1 ? `hour` : `hours`}`,
+            duration: getTimeRemaining(duration).join(` `),
             author: author.name,
           }),
           parse_mode: `HTML`,

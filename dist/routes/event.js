@@ -89,7 +89,9 @@ const event = {
                         [
                             {
                                 text: event.title,
-                                url: `https://t.me/pueventbot/event?startapp=${event._id}`,
+                                web_app: {
+                                    url: `https://event.chebarash.uz/events/${event._id}`,
+                                },
                             },
                             { text: `delete`, callback_data: `delete//${event._id}` },
                         ],

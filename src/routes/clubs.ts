@@ -27,7 +27,10 @@ const clubs: {
     if (index === -1)
       return res.status(404).json({ message: `Club not found` });
 
-    const events = await Events.find({ author: _id }).lean();
+    const events = await Events.find({ author: _id })
+      .sort({ date: -1 })
+      .lean()
+      .exec();
 
     res.json({ ...topClubs[index], rank: index + 1, events });
   },
@@ -74,7 +77,10 @@ const clubs: {
     const index = topClubs.findIndex(
       (club) => club._id.toString() === body._id
     );
-    const events = await Events.find({ author: body._id }).lean();
+    const events = await Events.find({ author: body._id })
+      .sort({ date: -1 })
+      .lean()
+      .exec();
     res.json({ ...topClubs[index], rank: index + 1, events });
   },
 };

@@ -28,7 +28,10 @@ const clubs = {
         const index = topClubs.findIndex((club) => club._id.toString() === _id);
         if (index === -1)
             return res.status(404).json({ message: `Club not found` });
-        const events = yield events_1.default.find({ author: _id }).lean();
+        const events = yield events_1.default.find({ author: _id })
+            .sort({ date: -1 })
+            .lean()
+            .exec();
         res.json(Object.assign(Object.assign({}, topClubs[index]), { rank: index + 1, events }));
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ body: { _id }, user }, res) {
@@ -69,7 +72,10 @@ const clubs = {
         })));
         const topClubs = clubList.sort((a, b) => b.members - a.members);
         const index = topClubs.findIndex((club) => club._id.toString() === body._id);
-        const events = yield events_1.default.find({ author: body._id }).lean();
+        const events = yield events_1.default.find({ author: body._id })
+            .sort({ date: -1 })
+            .lean()
+            .exec();
         res.json(Object.assign(Object.assign({}, topClubs[index]), { rank: index + 1, events }));
     }),
 };

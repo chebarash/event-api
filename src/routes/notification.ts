@@ -36,7 +36,9 @@ const notification: {
                 [
                   {
                     text: `Ticket`,
-                    url: `https://t.me/pueventbot/event?startapp=ticket${event._id}`,
+                    web_app: {
+                      url: `https://event.chebarash.uz/events/${event._id}/ticket`,
+                    },
                   },
                 ],
               ],
@@ -78,7 +80,9 @@ const notification: {
                   [
                     {
                       text: `Open in Event`,
-                      url: `https://t.me/pueventbot/event?startapp=${event._id}`,
+                      web_app: {
+                        url: `https://event.chebarash.uz/events/${event._id}`,
+                      },
                     },
                   ],
                 ],

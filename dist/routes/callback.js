@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const users_1 = __importDefault(require("../models/users"));
 const axios_1 = __importDefault(require("axios"));
 const bot_1 = __importDefault(require("../bot"));
-const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, GROUP } = process.env;
+const { GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, GROUP, ADMIN_ID, } = process.env;
 const callback = {
     get: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { code, state } = req.query;
@@ -42,14 +42,32 @@ const callback = {
                 console.error(e);
             }
         }
-        yield users_1.default.updateOne({ email }, {
+        const user = yield users_1.default.findOneAndUpdate({ email }, {
             name: [given_name || ``, family_name || ``]
                 .map((v) => v.charAt(0).toUpperCase() + v.slice(1).toLocaleLowerCase())
                 .join(` `),
             picture,
             email,
             id,
-        }, { upsert: true });
+        }, { upsert: true, new: true });
+        try {
+            yield bot_1.default.telegram.sendMessage(parseInt(ADMIN_ID), `<pre><code class="language-json">${JSON.stringify(user, null, 2)}</code></pre>`, {
+                parse_mode: `HTML`,
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: user.name,
+                                url: `tg://user?id=${id}`,
+                            },
+                        ],
+                    ],
+                },
+            });
+        }
+        catch (e) {
+            yield bot_1.default.telegram.sendMessage(parseInt(ADMIN_ID), `<pre><code class="language-json">${JSON.stringify(user, null, 2)}</code></pre>`, { parse_mode: `HTML` });
+        }
         return res.redirect(from || `https://t.me/pueventbot?start=${option}`);
     }),
 };

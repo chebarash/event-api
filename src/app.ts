@@ -6,7 +6,6 @@ import participated from "./routes/participated";
 import registered from "./routes/registered";
 import callback from "./routes/callback";
 import event from "./routes/event";
-import photo from "./routes/photo";
 import clubs from "./routes/clubs";
 import auth from "./routes/auth";
 import user from "./routes/user";
@@ -30,7 +29,6 @@ const routes: Array<
   [`/clubs`, clubs],
   [`/event`, event],
   [`/callback`, callback],
-  [`/photo/:fileId`, photo],
   [`/registered`, registered],
   [`/participated`, participated],
   [`/notification`, notification],

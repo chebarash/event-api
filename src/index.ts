@@ -10,6 +10,8 @@ import Admins from "./models/admin";
 import appRouter from "./app";
 import bot from "./bot";
 
+import media from "./routes/media";
+
 const {
   TOKEN,
   PORT,
@@ -51,6 +53,9 @@ app.use(cors());
 app.use(express.json());
 
 app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
+
+app.get(`/photo/:fileId`, media(`photo`));
+app.get(`/video/:fileId`, media(`video`));
 
 app.use(async (req, res, next) => {
   try {

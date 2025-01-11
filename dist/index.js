@@ -20,6 +20,7 @@ const users_1 = __importDefault(require("./models/users"));
 const admin_1 = __importDefault(require("./models/admin"));
 const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
+const media_1 = __importDefault(require("./routes/media"));
 const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, GROUP, LOGS, } = process.env;
 if ([
     TOKEN,
@@ -42,6 +43,8 @@ const port = PORT || 3000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
+app.get(`/photo/:fileId`, (0, media_1.default)(`photo`));
+app.get(`/video/:fileId`, (0, media_1.default)(`video`));
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const admin = yield admin_1.default.findOne();

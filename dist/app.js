@@ -17,7 +17,6 @@ const participated_1 = __importDefault(require("./routes/participated"));
 const registered_1 = __importDefault(require("./routes/registered"));
 const callback_1 = __importDefault(require("./routes/callback"));
 const event_1 = __importDefault(require("./routes/event"));
-const photo_1 = __importDefault(require("./routes/photo"));
 const clubs_1 = __importDefault(require("./routes/clubs"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const user_1 = __importDefault(require("./routes/user"));
@@ -32,7 +31,6 @@ const routes = [
     [`/clubs`, clubs_1.default],
     [`/event`, event_1.default],
     [`/callback`, callback_1.default],
-    [`/photo/:fileId`, photo_1.default],
     [`/registered`, registered_1.default],
     [`/participated`, participated_1.default],
     [`/notification`, notification_1.default],

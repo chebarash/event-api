@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import axios from "axios";
+import crypto from "crypto";
 import { connect } from "mongoose";
 
 import Users from "./models/users";
@@ -57,6 +58,30 @@ app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
 app.get(`/photo/:fileId`, media(`photo`));
 app.get(`/video/:fileId`, media(`video`));
 
+const getId = (initData: string): null | number => {
+  const data = new URLSearchParams(initData);
+  const hash = data.get("hash");
+  const dataToCheck: string[] = [];
+
+  data.sort();
+  data.forEach(
+    (val, key) => key !== "hash" && dataToCheck.push(`${key}=${val}`)
+  );
+  const user = data.get(`user`);
+
+  const secret = crypto
+    .createHmac("sha256", "WebAppData")
+    .update(TOKEN)
+    .digest();
+
+  const _hash = crypto
+    .createHmac("sha256", secret)
+    .update(dataToCheck.join("\n"))
+    .digest("hex");
+
+  return hash === _hash && user ? JSON.parse(user).id : null;
+};
+
 app.use(async (req, res, next) => {
   try {
     const admin = await Admins.findOne();
@@ -80,11 +105,12 @@ app.use(async (req, res, next) => {
     req.admin = admin;
 
     const { authorization } = req.headers;
-    if (authorization) {
-      const user = await Users.findOne({ id: authorization }).populate([
-        `clubs`,
-        `member`,
-      ]);
+
+    if (authorization?.startsWith(`tma `)) {
+      const initData = authorization.replace(`tma `, ``);
+      const id = getId(initData);
+      if (!id) return res.status(401).json({ message: `Unauthorized` });
+      const user = await Users.findOne({ id }).populate([`clubs`, `member`]);
       if (user) req.user = user;
     }
 

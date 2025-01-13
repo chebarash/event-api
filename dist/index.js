@@ -15,6 +15,7 @@ require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const axios_1 = __importDefault(require("axios"));
+const crypto_1 = __importDefault(require("crypto"));
 const mongoose_1 = require("mongoose");
 const users_1 = __importDefault(require("./models/users"));
 const admin_1 = __importDefault(require("./models/admin"));
@@ -45,6 +46,23 @@ app.use(express_1.default.json());
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
 app.get(`/photo/:fileId`, (0, media_1.default)(`photo`));
 app.get(`/video/:fileId`, (0, media_1.default)(`video`));
+const getId = (initData) => {
+    const data = new URLSearchParams(initData);
+    const hash = data.get("hash");
+    const dataToCheck = [];
+    data.sort();
+    data.forEach((val, key) => key !== "hash" && dataToCheck.push(`${key}=${val}`));
+    const user = data.get(`user`);
+    const secret = crypto_1.default
+        .createHmac("sha256", "WebAppData")
+        .update(TOKEN)
+        .digest();
+    const _hash = crypto_1.default
+        .createHmac("sha256", secret)
+        .update(dataToCheck.join("\n"))
+        .digest("hex");
+    return hash === _hash && user ? JSON.parse(user).id : null;
+};
 app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const admin = yield admin_1.default.findOne();
@@ -63,11 +81,12 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         }
         req.admin = admin;
         const { authorization } = req.headers;
-        if (authorization) {
-            const user = yield users_1.default.findOne({ id: authorization }).populate([
-                `clubs`,
-                `member`,
-            ]);
+        if (authorization === null || authorization === void 0 ? void 0 : authorization.startsWith(`tma `)) {
+            const initData = authorization.replace(`tma `, ``);
+            const id = getId(initData);
+            if (!id)
+                return res.status(401).json({ message: `Unauthorized` });
+            const user = yield users_1.default.findOne({ id }).populate([`clubs`, `member`]);
             if (user)
                 req.user = user;
         }

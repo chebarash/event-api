@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const users_1 = __importDefault(require("../models/users"));
 const clubs_1 = __importDefault(require("../models/clubs"));
 const events_1 = __importDefault(require("../models/events"));
+const bot_1 = __importDefault(require("../bot"));
 const clubs = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { _id } }, res) {
         const clubs = yield clubs_1.default.find().populate(`leader`).lean();
@@ -32,7 +33,11 @@ const clubs = {
             .sort({ date: -1 })
             .lean()
             .exec();
-        res.json(Object.assign(Object.assign({}, topClubs[index]), { rank: index + 1, events }));
+        const chat = yield bot_1.default.telegram.getChat(topClubs[index].leader.id);
+        let username = `chebarash`;
+        if (chat.type == `private` && chat.username)
+            username = chat.username;
+        res.json(Object.assign(Object.assign({}, topClubs[index]), { rank: index + 1, events, username }));
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ body: { _id }, user }, res) {
         if (!user)

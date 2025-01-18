@@ -3,6 +3,7 @@ import { MethodsType, UserType } from "../types/types";
 import Users from "../models/users";
 import Clubs from "../models/clubs";
 import Events from "../models/events";
+import bot from "../bot";
 
 const clubs: {
   [name in MethodsType]?: RequestHandler;
@@ -32,7 +33,13 @@ const clubs: {
       .lean()
       .exec();
 
-    res.json({ ...topClubs[index], rank: index + 1, events });
+    const chat = await bot.telegram.getChat(topClubs[index].leader.id);
+
+    let username = `chebarash`;
+
+    if (chat.type == `private` && chat.username) username = chat.username;
+
+    res.json({ ...topClubs[index], rank: index + 1, events, username });
   },
   post: async ({ body: { _id }, user }, res) => {
     if (!user) return res.status(401).json({ message: `Login to join` });

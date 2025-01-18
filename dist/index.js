@@ -46,6 +46,9 @@ app.use(express_1.default.json());
 app.post(`/${TOKEN}`, (req, res) => bot_1.default.handleUpdate(req.body, res));
 app.get(`/photo/:fileId`, (0, media_1.default)(`photo`));
 app.get(`/video/:fileId`, (0, media_1.default)(`video`));
+app.get(`/connect`, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.json({ result: yield bot_1.default.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`) });
+}));
 const getId = (initData) => {
     const data = new URLSearchParams(initData);
     const hash = data.get("hash");
@@ -100,9 +103,6 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
 (0, mongoose_1.connect)(DATABASE_URL)
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Connected to MongoDB`);
-    DEV
-        ? bot_1.default.launch()
-        : yield bot_1.default.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
     app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
     });

@@ -45,7 +45,7 @@ const tempMethod = (bot) => {
                             {
                                 text: `Create Event`,
                                 web_app: {
-                                    url: `https://event.chebarash.uz/events/create?${/^AgACAgIAAxkBA[A-Za-z0-9_\-]{53,70}$/.test(fileId)
+                                    url: `https://event.chebarash.uz/events/create?${/^AgACAgIAAxkBA[A-Za-z0-9_\-]{53,90}$/.test(fileId)
                                         ? `picture`
                                         : `content`}=${encodeURIComponent(fileId)}&description=${encodeURIComponent(html)}`,
                                 },

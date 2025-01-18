@@ -48,7 +48,7 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
                   text: `Create Event`,
                   web_app: {
                     url: `https://event.chebarash.uz/events/create?${
-                      /^AgACAgIAAxkBA[A-Za-z0-9_\-]{53,70}$/.test(fileId)
+                      /^AgACAgIAAxkBA[A-Za-z0-9_\-]{53,90}$/.test(fileId)
                         ? `picture`
                         : `content`
                     }=${encodeURIComponent(

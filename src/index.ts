@@ -58,6 +58,10 @@ app.post(`/${TOKEN}`, (req, res) => bot.handleUpdate(req.body, res));
 app.get(`/photo/:fileId`, media(`photo`));
 app.get(`/video/:fileId`, media(`video`));
 
+app.get(`/connect`, async (req, res) => {
+  res.json({ result: await bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`) });
+});
+
 const getId = (initData: string): null | number => {
   const data = new URLSearchParams(initData);
   const hash = data.get("hash");
@@ -124,9 +128,6 @@ app.use(async (req, res, next) => {
 connect(DATABASE_URL)
   .then(async () => {
     console.log(`Connected to MongoDB`);
-    DEV
-      ? bot.launch()
-      : await bot.telegram.setWebhook(`${VERCEL_URL}/${TOKEN}`);
     app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });

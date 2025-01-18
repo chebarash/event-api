@@ -62,7 +62,8 @@ const clubs = {
             description: body.description,
             channel: body.channel,
             cover: body.cover,
-            color: body.color,
+            fg: body.fg,
+            bg: body.bg,
         });
         const clubs = yield clubs_1.default.find().populate(`leader`).lean();
         const clubList = yield Promise.all(clubs.map((club) => __awaiter(void 0, void 0, void 0, function* () {

@@ -6,7 +6,8 @@ declare const Clubs: import("mongoose").Model<ClubType, {}, {}, {}, import("mong
     description: string;
     channel?: string;
     cover: string;
-    color: string;
+    fg: string;
+    bg: string;
     hidden: boolean;
     leader: import("../types/types").UserType;
 } & import("mongoose").Document<unknown, any, any> & Required<{

@@ -14,7 +14,8 @@ export type ClubType = {
   description: string;
   channel?: string;
   cover: string;
-  color: string;
+  fg: string;
+  bg: string;
   hidden: boolean;
   leader: UserType;
 } & Document;
@@ -37,7 +38,8 @@ export type EventType = {
   _id: ObjectId;
   title: string;
   picture: string;
-  color: string;
+  fg: string;
+  bg: string;
   description: string;
   author: ClubType;
   date: Date;

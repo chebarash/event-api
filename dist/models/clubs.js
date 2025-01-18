@@ -6,7 +6,8 @@ const clubsSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
     channel: { type: String },
     cover: { type: String, required: true },
-    color: { type: String, required: true },
+    fg: { type: String, required: true },
+    bg: { type: String, required: true },
     hidden: { type: Boolean, required: true, default: false },
     leader: { type: mongoose_1.Schema.Types.ObjectId, ref: `users`, required: true },
 });

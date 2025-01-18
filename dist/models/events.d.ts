@@ -4,7 +4,8 @@ declare const Events: import("mongoose").Model<EventType, {}, {}, {}, import("mo
     _id: import("mongoose").ObjectId;
     title: string;
     picture: string;
-    color: string;
+    fg: string;
+    bg: string;
     description: string;
     author: import("../types/types").ClubType;
     date: Date;

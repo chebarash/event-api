@@ -62,7 +62,8 @@ const clubs: {
       description: body.description,
       channel: body.channel,
       cover: body.cover,
-      color: body.color,
+      fg: body.fg,
+      bg: body.bg,
     });
     const clubs = await Clubs.find().populate(`leader`).lean();
     const clubList = await Promise.all(

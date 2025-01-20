@@ -1,26 +1,34 @@
 import { RequestHandler } from "express";
-import { MethodsType, UserType } from "../types/types";
+import { ClubType, MethodsType, UserType } from "../types/types";
 import Users from "../models/users";
 import Clubs from "../models/clubs";
 import Events from "../models/events";
 import bot from "../bot";
 
+let topClubs: Array<ClubType & { members: Array<UserType> }>;
+let validTime = 0;
+
 const clubs: {
   [name in MethodsType]?: RequestHandler;
 } = {
   get: async ({ query: { _id } }, res) => {
-    const clubs = await Clubs.find().populate(`leader`).lean();
+    if (!topClubs || Date.now() > validTime) {
+      const clubs: Array<ClubType & { members: Array<UserType> }> =
+        await Clubs.find().populate(`leader`).lean();
 
-    const clubList = await Promise.all(
-      clubs.map(async (club) => ({
-        ...club,
-        members: await Users.countDocuments({
-          member: club._id,
-        }),
-      }))
-    );
+      const users = await Users.find({
+        member: { $exists: true, $not: { $size: 0 } },
+      }).lean();
 
-    const topClubs = clubList.sort((a, b) => b.members - a.members);
+      for (const club of clubs)
+        club.members = users.filter((user) =>
+          user.member.some((member) => `${member}` === `${club._id}`)
+        );
+
+      topClubs = clubs.sort((a, b) => b.members.length - a.members.length);
+      validTime = Date.now() + 1000 * 60;
+    }
+
     if (!_id) return res.json(topClubs);
 
     const index = topClubs.findIndex((club) => club._id.toString() === _id);

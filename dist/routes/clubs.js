@@ -15,15 +15,20 @@ const users_1 = __importDefault(require("../models/users"));
 const clubs_1 = __importDefault(require("../models/clubs"));
 const events_1 = __importDefault(require("../models/events"));
 const bot_1 = __importDefault(require("../bot"));
+let topClubs;
+let validTime = 0;
 const clubs = {
     get: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ query: { _id } }, res) {
-        const clubs = yield clubs_1.default.find().populate(`leader`).lean();
-        const clubList = yield Promise.all(clubs.map((club) => __awaiter(void 0, void 0, void 0, function* () {
-            return (Object.assign(Object.assign({}, club), { members: yield users_1.default.countDocuments({
-                    member: club._id,
-                }) }));
-        })));
-        const topClubs = clubList.sort((a, b) => b.members - a.members);
+        if (!topClubs || Date.now() > validTime) {
+            const clubs = yield clubs_1.default.find().populate(`leader`).lean();
+            const users = yield users_1.default.find({
+                member: { $exists: true, $not: { $size: 0 } },
+            }).lean();
+            for (const club of clubs)
+                club.members = users.filter((user) => user.member.some((member) => `${member}` === `${club._id}`));
+            topClubs = clubs.sort((a, b) => b.members.length - a.members.length);
+            validTime = Date.now() + 1000 * 60;
+        }
         if (!_id)
             return res.json(topClubs);
         const index = topClubs.findIndex((club) => club._id.toString() === _id);

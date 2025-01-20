@@ -82,3 +82,11 @@ export type MethodsType =
 export interface MyContext extends Context {
   user: UserType;
 }
+
+export type ForYouType = {
+  title: string;
+  subtitle: string;
+  button: string;
+  image: string;
+  link: string;
+};

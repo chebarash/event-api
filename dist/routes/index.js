@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const users_1 = __importDefault(require("../models/users"));
 const clubs_1 = __importDefault(require("../models/clubs"));
 const events_1 = __importDefault(require("../models/events"));
+const foryou_1 = __importDefault(require("../models/foryou"));
 const index = {
     get: (_, res) => __awaiter(void 0, void 0, void 0, function* () {
         const users = yield users_1.default.countDocuments();
@@ -25,13 +26,7 @@ const index = {
             .populate([`author`, `registered`, `participated`])
             .lean()
             .exec();
-        const foryou = {
-            title: `Chimgan Winter Trip`,
-            subtitle: `by Travel Club`,
-            button: `Get Ticket`,
-            image: `http://event-api.chebarash.uz/photo/AgACAgIAAxkBAAJAAmd0MXNLcZKhUzOELJz-YHhCvqlpAALS5TEb2MmgS46omyRRxvrEAQADAgADeQADNgQ`,
-            link: `/events/6763c2141438c4cd016b4c60`,
-        };
+        const foryou = yield foryou_1.default.findOne({});
         res.json({ users, clubs, events, foryou });
     }),
 };

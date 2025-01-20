@@ -3,6 +3,7 @@ import { MethodsType } from "../types/types";
 import Users from "../models/users";
 import Clubs from "../models/clubs";
 import Events from "../models/events";
+import ForYou from "../models/foryou";
 
 const index: {
   [name in MethodsType]?: RequestHandler;
@@ -17,13 +18,7 @@ const index: {
       .populate([`author`, `registered`, `participated`])
       .lean()
       .exec();
-    const foryou = {
-      title: `Chimgan Winter Trip`,
-      subtitle: `by Travel Club`,
-      button: `Get Ticket`,
-      image: `http://event-api.chebarash.uz/photo/AgACAgIAAxkBAAJAAmd0MXNLcZKhUzOELJz-YHhCvqlpAALS5TEb2MmgS46omyRRxvrEAQADAgADeQADNgQ`,
-      link: `/events/6763c2141438c4cd016b4c60`,
-    };
+    const foryou = await ForYou.findOne({});
     res.json({ users, clubs, events, foryou });
   },
 };

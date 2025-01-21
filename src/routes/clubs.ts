@@ -8,26 +8,28 @@ import bot from "../bot";
 let topClubs: Array<ClubType & { members: Array<UserType> }>;
 let validTime = 0;
 
+const updateTopClubs = async () => {
+  const clubs: Array<ClubType & { members: Array<UserType> }> =
+    await Clubs.find().populate(`leader`).lean();
+
+  const users = await Users.find({
+    member: { $exists: true, $not: { $size: 0 } },
+  }).lean();
+
+  for (const club of clubs)
+    club.members = users.filter((user) =>
+      user.member.some((member) => `${member}` === `${club._id}`)
+    );
+
+  topClubs = clubs.sort((a, b) => b.members.length - a.members.length);
+  validTime = Date.now() + 1000 * 60;
+};
+
 const clubs: {
   [name in MethodsType]?: RequestHandler;
 } = {
   get: async ({ query: { _id } }, res) => {
-    if (!topClubs || Date.now() > validTime) {
-      const clubs: Array<ClubType & { members: Array<UserType> }> =
-        await Clubs.find().populate(`leader`).lean();
-
-      const users = await Users.find({
-        member: { $exists: true, $not: { $size: 0 } },
-      }).lean();
-
-      for (const club of clubs)
-        club.members = users.filter((user) =>
-          user.member.some((member) => `${member}` === `${club._id}`)
-        );
-
-      topClubs = clubs.sort((a, b) => b.members.length - a.members.length);
-      validTime = Date.now() + 1000 * 60;
-    }
+    if (!topClubs || Date.now() > validTime) await updateTopClubs();
 
     if (!_id) return res.json(topClubs);
 
@@ -49,13 +51,27 @@ const clubs: {
 
     res.json({ ...topClubs[index], rank: index + 1, events, username });
   },
-  post: async ({ body: { _id }, user }, res) => {
+  post: async ({ body: { _id, userId }, user }, res) => {
     if (!user) return res.status(401).json({ message: `Login to join` });
-    if (!user.email.endsWith(`@newuu.uz`))
-      return res.status(403).json({ message: `Only students can join` });
     if (!_id) return res.status(400).json({ message: `Club not found` });
     const club = await Clubs.findOne({ _id });
     if (!club) return res.status(404).json({ message: `Club not found` });
+    if (`${club.leader}` === `${user._id}` && userId) {
+      await Users.findByIdAndUpdate(userId, { $pull: { member: _id } });
+      await updateTopClubs();
+      const index = topClubs.findIndex((club) => club._id.toString() === _id);
+      const events = await Events.find({ author: _id })
+        .sort({ date: -1 })
+        .lean()
+        .exec();
+      return res.json({
+        ...topClubs[index],
+        rank: index + 1,
+        events,
+      });
+    }
+    if (!user.email.endsWith(`@newuu.uz`))
+      return res.status(403).json({ message: `Only students can join` });
     const isMember = (user as UserType).member.some(
       (club) => `${club._id}` === _id
     );
@@ -80,16 +96,7 @@ const clubs: {
       fg: body.fg,
       bg: body.bg,
     });
-    const clubs = await Clubs.find().populate(`leader`).lean();
-    const clubList = await Promise.all(
-      clubs.map(async (club) => ({
-        ...club,
-        members: await Users.countDocuments({
-          member: club._id,
-        }),
-      }))
-    );
-    const topClubs = clubList.sort((a, b) => b.members - a.members);
+    if (!topClubs || Date.now() > validTime) await updateTopClubs();
     const index = topClubs.findIndex(
       (club) => club._id.toString() === body._id
     );
@@ -97,7 +104,11 @@ const clubs: {
       .sort({ date: -1 })
       .lean()
       .exec();
-    res.json({ ...topClubs[index], rank: index + 1, events });
+    res.json({
+      ...(await Clubs.findById(club._id).populate(`leader`).lean()),
+      rank: index + 1,
+      events,
+    });
   },
 };
 

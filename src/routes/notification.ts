@@ -26,6 +26,7 @@ const notification: {
     });
     let sent = false;
     for (const event of preEvent) {
+      let sentTo = 0;
       for (const { id } of event.registered) {
         try {
           await bot.telegram.sendPhoto(id, event.picture, {
@@ -44,6 +45,7 @@ const notification: {
               ],
             },
           });
+          sentTo++;
         } catch (e) {
           console.log(e);
         }
@@ -51,6 +53,25 @@ const notification: {
       event.notification.pre = true;
       await event.save();
       sent = true;
+      await bot.telegram.sendMessage(
+        process.env.ADMIN_ID,
+        `Notification sent to ${sentTo}/${event.registered.length} registered users for <b>${event.title}</b>`,
+        {
+          parse_mode: `HTML`,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: event.title,
+                  web_app: {
+                    url: `https://event.chebarash.uz/events/${event._id}`,
+                  },
+                },
+              ],
+            ],
+          },
+        }
+      );
     }
     for (const event of postEvent) {
       const eventEndTime = new Date(event.date);
@@ -70,7 +91,10 @@ const notification: {
           const linkString = Object.entries(link)
             .map(([key, value]) => `${key}=${encodeURIComponent(`${value}`)}`)
             .join("&");
-          await bot.telegram.sendMessage(
+          const {
+            message_id,
+            chat: { id },
+          } = await bot.telegram.sendMessage(
             event.author.leader.id,
             `Just a quick reminder to fill out the <a href="https://docs.google.com/forms/d/e/1FAIpQLSeuddmhm0Og2h2B8uHxBpEhbJrjKb4i-nzzIEEpwch0f02tAw/viewform?usp=pp_url&${linkString}">event report form</a> for <b>${event.title}</b>.`,
             {
@@ -88,6 +112,11 @@ const notification: {
                 ],
               },
             }
+          );
+          await bot.telegram.forwardMessage(
+            process.env.ADMIN_ID,
+            id,
+            message_id
           );
         } catch (e) {
           console.log(e);

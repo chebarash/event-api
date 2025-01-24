@@ -3,6 +3,7 @@ import { EventType, MethodsType } from "../types/types";
 import Events from "../models/events";
 import bot from "../bot";
 import axios from "axios";
+import Users from "../models/users";
 
 const def = {
   spots: undefined,
@@ -75,9 +76,34 @@ const event: {
       const event = await (
         await new Events(body).save()
       ).populate([`author`, `registered`, `participated`]);
+      const members = await Users.find({ member: body.author._id }).exec();
+      let sent = 0;
+      for (const { id } of members) {
+        try {
+          await bot.telegram.sendPhoto(id, event.picture, {
+            caption: `<b>New event by ${event.author.name}:</b> ${event.title}`,
+            parse_mode: `HTML`,
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: `Check it out`,
+                    web_app: {
+                      url: `https://event.chebarash.uz/events/${event._id}`,
+                    },
+                  },
+                ],
+              ],
+            },
+          });
+          sent++;
+        } catch (e) {
+          console.log(e);
+        }
+      }
       await bot.telegram.sendMessage(
         process.env.ADMIN_ID,
-        `New Event by ${event.author.name}`,
+        `New Event by ${event.author.name}\nNotification sent to ${sent}/${members.length} members`,
         {
           reply_markup: {
             inline_keyboard: [

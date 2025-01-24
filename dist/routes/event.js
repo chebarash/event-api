@@ -25,6 +25,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 const events_1 = __importDefault(require("../models/events"));
 const bot_1 = __importDefault(require("../bot"));
 const axios_1 = __importDefault(require("axios"));
+const users_1 = __importDefault(require("../models/users"));
 const def = {
     spots: undefined,
     deadline: undefined,
@@ -83,7 +84,33 @@ const event = {
             });
             body.eventId = id;
             const event = yield (yield new events_1.default(body).save()).populate([`author`, `registered`, `participated`]);
-            yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}`, {
+            const members = yield users_1.default.find({ member: body.author._id }).exec();
+            let sent = 0;
+            for (const { id } of members) {
+                try {
+                    yield bot_1.default.telegram.sendPhoto(id, event.picture, {
+                        caption: `<b>New event by ${event.author.name}:</b> ${event.title}`,
+                        parse_mode: `HTML`,
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: `Check it out`,
+                                        web_app: {
+                                            url: `https://event.chebarash.uz/events/${event._id}`,
+                                        },
+                                    },
+                                ],
+                            ],
+                        },
+                    });
+                    sent++;
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+            yield bot_1.default.telegram.sendMessage(process.env.ADMIN_ID, `New Event by ${event.author.name}\nNotification sent to ${sent}/${members.length} members`, {
                 reply_markup: {
                     inline_keyboard: [
                         [

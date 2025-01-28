@@ -1,16 +1,22 @@
 import { RequestHandler } from "express";
-import { ClubType, MethodsType, UserType } from "../types/types";
+import {
+  ClubResponseType,
+  ClubType,
+  MethodsType,
+  UserType,
+} from "../types/types";
 import Users from "../models/users";
 import Clubs from "../models/clubs";
 import Events from "../models/events";
 import bot from "../bot";
 
-let topClubs: Array<ClubType & { members: Array<UserType> }>;
+let topClubs: Array<ClubResponseType>;
 let validTime = 0;
 
 const updateTopClubs = async () => {
-  const clubs: Array<ClubType & { members: Array<UserType> }> =
-    await Clubs.find().populate(`leader`).lean();
+  const clubs: Array<ClubResponseType> = await Clubs.find({ hidden: false })
+    .populate(`leader`)
+    .lean();
 
   const users = await Users.find({
     member: { $exists: true, $not: { $size: 0 } },
@@ -35,21 +41,32 @@ const clubs: {
 
     const index = topClubs.findIndex((club) => club._id.toString() === _id);
 
-    if (index === -1)
-      return res.status(404).json({ message: `Club not found` });
+    let club: ClubResponseType;
+
+    if (index === -1) {
+      const c = await Clubs.findOne({ hidden: true, _id })
+        .populate(`leader`)
+        .lean();
+      if (c)
+        club = {
+          ...c,
+          members: await Users.find({ member: _id }).lean(),
+        } as ClubResponseType;
+      else return res.status(404).json({ message: `Club not found` });
+    } else club = topClubs[index];
 
     const events = await Events.find({ author: _id })
       .sort({ date: -1 })
       .lean()
       .exec();
 
-    const chat = await bot.telegram.getChat(topClubs[index].leader.id);
+    const chat = await bot.telegram.getChat(club.leader.id);
 
     let username = `chebarash`;
 
     if (chat.type == `private` && chat.username) username = chat.username;
 
-    res.json({ ...topClubs[index], rank: index + 1, events, username });
+    res.json({ ...club, rank: index + 1, events, username });
   },
   post: async ({ body: { _id, userId }, user }, res) => {
     if (!user) return res.status(401).json({ message: `Login to join` });
@@ -100,6 +117,7 @@ const clubs: {
     const index = topClubs.findIndex(
       (club) => club._id.toString() === body._id
     );
+
     const events = await Events.find({ author: body._id })
       .sort({ date: -1 })
       .lean()

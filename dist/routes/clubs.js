@@ -18,7 +18,9 @@ const bot_1 = __importDefault(require("../bot"));
 let topClubs;
 let validTime = 0;
 const updateTopClubs = () => __awaiter(void 0, void 0, void 0, function* () {
-    const clubs = yield clubs_1.default.find().populate(`leader`).lean();
+    const clubs = yield clubs_1.default.find({ hidden: false })
+        .populate(`leader`)
+        .lean();
     const users = yield users_1.default.find({
         member: { $exists: true, $not: { $size: 0 } },
     }).lean();
@@ -34,17 +36,27 @@ const clubs = {
         if (!_id)
             return res.json(topClubs);
         const index = topClubs.findIndex((club) => club._id.toString() === _id);
-        if (index === -1)
-            return res.status(404).json({ message: `Club not found` });
+        let club;
+        if (index === -1) {
+            const c = yield clubs_1.default.findOne({ hidden: true, _id })
+                .populate(`leader`)
+                .lean();
+            if (c)
+                club = Object.assign(Object.assign({}, c), { members: yield users_1.default.find({ member: _id }).lean() });
+            else
+                return res.status(404).json({ message: `Club not found` });
+        }
+        else
+            club = topClubs[index];
         const events = yield events_1.default.find({ author: _id })
             .sort({ date: -1 })
             .lean()
             .exec();
-        const chat = yield bot_1.default.telegram.getChat(topClubs[index].leader.id);
+        const chat = yield bot_1.default.telegram.getChat(club.leader.id);
         let username = `chebarash`;
         if (chat.type == `private` && chat.username)
             username = chat.username;
-        res.json(Object.assign(Object.assign({}, topClubs[index]), { rank: index + 1, events, username }));
+        res.json(Object.assign(Object.assign({}, club), { rank: index + 1, events, username }));
     }),
     post: (_a, res_1) => __awaiter(void 0, [_a, res_1], void 0, function* ({ body: { _id, userId }, user }, res) {
         if (!user)

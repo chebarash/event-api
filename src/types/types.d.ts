@@ -90,3 +90,5 @@ export type ForYouType = {
   image: string;
   link: string;
 };
+
+export type ClubResponseType = ClubType & { members: Array<UserType> };

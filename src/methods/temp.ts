@@ -1,13 +1,21 @@
+import Clubs from "../models/clubs";
 import Events from "../models/events";
+import Users from "../models/users";
 import { MyContext } from "../types/types";
 import error from "./error";
-import { Context, NarrowedContext, Telegraf } from "telegraf";
+import { NarrowedContext, Telegraf } from "telegraf";
 import { message } from "telegraf/filters";
 import {
   Message,
   MessageEntity,
   Update,
 } from "telegraf/typings/core/types/typegram";
+
+const { ADMIN_ID } = process.env;
+
+const adminId = parseInt(ADMIN_ID);
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const tempMethod = (bot: Telegraf<MyContext>) => {
   bot.use(async (ctx, next) => {
@@ -16,6 +24,82 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
     } catch (e) {
       await error(ctx, e);
     }
+  });
+
+  bot.action(/^notify\/\//g, async (ctx) => {
+    const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];
+    const event = await Events.findOne({ _id }).populate(`author`);
+    if (!event) return;
+    const members = await Users.find({ member: event.author._id }).exec();
+    let sent = 0;
+    for (const { id } of members) {
+      try {
+        await ctx.telegram.sendPhoto(id, event.picture, {
+          caption: `<b>New event by ${event.author.name}:</b> ${event.title}`,
+          parse_mode: `HTML`,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: `Open Event`,
+                  web_app: {
+                    url: `https://event.chebarash.uz/events/${event._id}`,
+                  },
+                },
+              ],
+              [
+                {
+                  text: event.author.name,
+                  web_app: {
+                    url: `https://event.chebarash.uz/clubs/${event.author._id}`,
+                  },
+                },
+              ],
+            ],
+          },
+        });
+        sent++;
+        if (sent % 4 == 0)
+          await ctx.editMessageReplyMarkup({
+            inline_keyboard: [
+              [
+                {
+                  text: event.title,
+                  web_app: {
+                    url: `https://event.chebarash.uz/events/${event._id}`,
+                  },
+                },
+              ],
+              [
+                {
+                  text: `Sent to ${sent}/${members.length} members...`,
+                  callback_data: `empty`,
+                },
+              ],
+            ],
+          });
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    await ctx.editMessageReplyMarkup({
+      inline_keyboard: [
+        [
+          {
+            text: event.title,
+            web_app: {
+              url: `https://event.chebarash.uz/events/${event._id}`,
+            },
+          },
+        ],
+        [
+          {
+            text: `Sent to ${sent}/${members.length}`,
+            callback_data: `empty`,
+          },
+        ],
+      ],
+    });
   });
 
   bot.action(/^delete/g, async (ctx) => {
@@ -57,6 +141,12 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
                   },
                 },
               ],
+              ...ctx.user.clubs.map(({ name, _id }) => [
+                {
+                  text: name,
+                  callback_data: `to//${_id}`,
+                },
+              ]),
             ],
           },
         }
@@ -159,7 +249,7 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
   };
 
   bot.on(message(`text`), async (ctx) => {
-    const { text, entities } = ctx.message;
+    const { text, entities, message_id } = ctx.message;
 
     if (!entities) return text;
 
@@ -167,6 +257,209 @@ export const tempMethod = (bot: Telegraf<MyContext>) => {
 
     return await ctx.reply("```HTML\n" + html + "```", {
       parse_mode: "MarkdownV2",
+      reply_parameters: { message_id },
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: `Create Event`,
+              web_app: {
+                url: `https://event.chebarash.uz/events/create?description=${encodeURIComponent(
+                  html
+                )}`,
+              },
+            },
+          ],
+          ...ctx.user.clubs.map(({ name, _id }) => [
+            {
+              text: name,
+              callback_data: `to//${_id}`,
+            },
+          ]),
+        ],
+      },
     });
+  });
+
+  bot.action(/^to\/\//g, async (ctx) => {
+    const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];
+    const event = await Events.find({ author: _id });
+    await ctx.editMessageReplyMarkup({
+      inline_keyboard: [
+        [{ text: `Send to all members`, callback_data: `toAll//${_id}` }],
+        ...event.map(({ _id, title }) => [
+          { text: `Send to ${title}`, callback_data: `toEvent//${_id}` },
+        ]),
+      ],
+    });
+  });
+
+  bot.action(/^toAll\/\//g, async (ctx) => {
+    const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];
+    const club = await Clubs.findOne({ _id });
+    if (!club) return;
+    const users = await Users.find({ member: _id });
+    if (
+      !ctx.chat ||
+      !ctx.callbackQuery.message ||
+      !(ctx.callbackQuery.message as any).reply_to_message
+    )
+      return;
+    let sent = 0;
+    for (const { id } of users) {
+      try {
+        await ctx.telegram.copyMessage(
+          id,
+          ctx.chat.id,
+          (ctx.callbackQuery.message as any).reply_to_message.message_id,
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: club.name,
+                    web_app: {
+                      url: `https://event.chebarash.uz/clubs/${_id}`,
+                    },
+                  },
+                ],
+              ],
+            },
+          }
+        );
+        sent++;
+        if (sent % 4 == 0)
+          await ctx.editMessageReplyMarkup({
+            inline_keyboard: [
+              [
+                {
+                  text: `Sent to ${sent}/${users.length} members...`,
+                  callback_data: `empty`,
+                },
+              ],
+            ],
+          });
+        await sleep(30);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    await ctx.editMessageReplyMarkup({
+      inline_keyboard: [
+        [
+          {
+            text: `Sent to ${sent}/${users.length} members ${club.name}`,
+            callback_data: `empty`,
+          },
+        ],
+      ],
+    });
+    await ctx.telegram.copyMessage(
+      adminId,
+      ctx.chat.id,
+      (ctx.callbackQuery.message as any).reply_to_message.message_id,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: club.name,
+                web_app: {
+                  url: `https://event.chebarash.uz/clubs/${_id}`,
+                },
+              },
+            ],
+          ],
+        },
+      }
+    );
+    await ctx.telegram.sendMessage(
+      adminId,
+      `Sent to ${sent}/${users.length} members ${club.name}\n${ctx.user.name} - ${ctx.user.email}`
+    );
+  });
+
+  bot.action(/^toEvent\/\//g, async (ctx) => {
+    const _id = (ctx.callbackQuery as { data: string }).data.split(`//`)[1];
+    const event = await Events.findOne({ _id }).populate(`registered`);
+    if (
+      !event ||
+      !ctx.chat ||
+      !ctx.callbackQuery.message ||
+      !(ctx.callbackQuery.message as any).reply_to_message
+    )
+      return;
+    let sent = 0;
+    for (const { id } of event.registered) {
+      try {
+        await ctx.telegram.copyMessage(
+          id,
+          ctx.chat.id,
+          (ctx.callbackQuery.message as any).reply_to_message.message_id,
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: event.title,
+                    web_app: {
+                      url: `https://event.chebarash.uz/events/${_id}`,
+                    },
+                  },
+                ],
+              ],
+            },
+          }
+        );
+        sent++;
+        if (sent % 4 == 0)
+          await ctx.editMessageReplyMarkup({
+            inline_keyboard: [
+              [
+                {
+                  text: `Sent to ${sent}/${event.registered.length}...`,
+                  callback_data: `empty`,
+                },
+              ],
+            ],
+          });
+        await sleep(30);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    await ctx.editMessageReplyMarkup({
+      inline_keyboard: [
+        [
+          {
+            text: `Sent to ${sent}/${event.registered.length} registered ${event.title}`,
+            callback_data: `empty`,
+          },
+        ],
+      ],
+    });
+    await ctx.telegram.copyMessage(
+      adminId,
+      ctx.chat.id,
+      (ctx.callbackQuery.message as any).reply_to_message.message_id,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: event.title,
+                web_app: {
+                  url: `https://event.chebarash.uz/events/${_id}`,
+                },
+              },
+            ],
+          ],
+        },
+      }
+    );
+    await ctx.telegram.sendMessage(
+      adminId,
+      `Sent to ${sent}/${event.registered.length} registered ${event.title}\n${ctx.user.name} - ${ctx.user.email}`
+    );
   });
 };

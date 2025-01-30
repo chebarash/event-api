@@ -12,6 +12,7 @@ import appRouter from "./app";
 import bot from "./bot";
 
 import media from "./routes/media";
+import Events from "./models/events";
 
 const {
   TOKEN,
@@ -23,7 +24,6 @@ const {
   GOOGLE_CALLBACK_URL,
   GOOGLE_CLIENT_SECRET,
   VERCEL_URL,
-  DEV,
   GROUP,
   LOGS,
 } = process.env;

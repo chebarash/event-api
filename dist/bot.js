@@ -46,7 +46,7 @@ bot.start((ctx) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, log_1.default)(ctx);
     const { id } = ctx.from;
     const option = ctx.message.text.split(` `)[1];
-    const res = yield users_1.default.findOne({ id });
+    const res = yield users_1.default.findOne({ id }).populate(`clubs`);
     if (!res)
         return yield (0, login_1.default)(ctx, option);
     ctx.user = res;
@@ -64,7 +64,7 @@ bot.use((ctx, next) => __awaiter(void 0, void 0, void 0, function* () {
         if (ctx.from.is_bot)
             return;
         const { id } = ((_a = ctx.update.message) === null || _a === void 0 ? void 0 : _a.left_chat_member) || ctx.from;
-        const res = yield users_1.default.findOne({ id });
+        const res = yield users_1.default.findOne({ id }).populate(`clubs`);
         if (!res)
             return yield (0, login_1.default)(ctx);
         ctx.user = res;

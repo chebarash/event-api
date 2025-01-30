@@ -76,34 +76,9 @@ const event: {
       const event = await (
         await new Events(body).save()
       ).populate([`author`, `registered`, `participated`]);
-      const members = await Users.find({ member: body.author._id }).exec();
-      let sent = 0;
-      for (const { id } of members) {
-        try {
-          await bot.telegram.sendPhoto(id, event.picture, {
-            caption: `<b>New event by ${event.author.name}:</b> ${event.title}`,
-            parse_mode: `HTML`,
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text: `Check it out`,
-                    web_app: {
-                      url: `https://event.chebarash.uz/events/${event._id}`,
-                    },
-                  },
-                ],
-              ],
-            },
-          });
-          sent++;
-        } catch (e) {
-          console.log(e);
-        }
-      }
       await bot.telegram.sendMessage(
         process.env.ADMIN_ID,
-        `New Event by ${event.author.name}\nNotification sent to ${sent}/${members.length} members`,
+        `New Event by ${event.author.name}`,
         {
           reply_markup: {
             inline_keyboard: [
@@ -114,8 +89,9 @@ const event: {
                     url: `https://event.chebarash.uz/events/${event._id}`,
                   },
                 },
-                { text: `delete`, callback_data: `delete//${event._id}` },
               ],
+              [{ text: `notify`, callback_data: `notify//${event._id}` }],
+              [{ text: `delete`, callback_data: `delete//${event._id}` }],
             ],
           },
         }

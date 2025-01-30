@@ -22,7 +22,7 @@ const admin_1 = __importDefault(require("./models/admin"));
 const app_1 = __importDefault(require("./app"));
 const bot_1 = __importDefault(require("./bot"));
 const media_1 = __importDefault(require("./routes/media"));
-const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, DEV, GROUP, LOGS, } = process.env;
+const { TOKEN, PORT, DATABASE_URL, ADMIN_ID, GOOGLE_AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_SECRET, VERCEL_URL, GROUP, LOGS, } = process.env;
 if ([
     TOKEN,
     PORT,

@@ -39,7 +39,7 @@ bot.start(async (ctx) => {
   const { id } = ctx.from;
   const option = ctx.message.text.split(` `)[1];
 
-  const res = await Users.findOne({ id });
+  const res = await Users.findOne({ id }).populate(`clubs`);
   if (!res) return await login(ctx, option);
   ctx.user = res;
   if (!ctx.user.phone) return await phoneNumber(ctx);
@@ -56,7 +56,7 @@ bot.use(async (ctx, next) => {
   if (ctx.from) {
     if (ctx.from.is_bot) return;
     const { id } = (ctx.update as any).message?.left_chat_member || ctx.from;
-    const res = await Users.findOne({ id });
+    const res = await Users.findOne({ id }).populate(`clubs`);
     if (!res) return await login(ctx);
     ctx.user = res;
 
